@@ -124,9 +124,10 @@ cross-site requests to `/api`.
 |---|---|:---:|
 | KVM / libvirt | `virsh` | ✅ Current |
 | Parallels | `prlctl` | ✅ Current |
-| Docker | `docker` | 🛣️ Roadmap |
-| Docker Compose stacks | `docker compose` | 🛣️ Roadmap |
-| Proxmox | Proxmox API | 🛣️ Roadmap |
+| Docker | `docker` | ✅ Current |
+| Docker Compose stacks | `docker compose` | ✅ Current |
+| Proxmox | Proxmox API | 🛣️ Untested |
+| Hyper-V |  | 🛣️ Untested |
 
 > Each provider is one instance of a provider *type* bound to a host. Adding hardware is a
 > config edit, never a code change.
