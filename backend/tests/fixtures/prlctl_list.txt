@@ -1,0 +1,14 @@
+NAME                             STATUS
+NixOS                            stopped
+OpenClaw                         stopped
+Safe Browsing v2                 suspended
+Ubuntu 24.04.3 ARM64             suspended
+lab-01-dev-01                    stopped
+lab-01-dev-02                    stopped
+gateway-01                       stopped
+pentest-vm                       stopped
+windows-vm                       stopped
+lab-03-dev-01                    stopped
+lab-03-dnd-01                    stopped
+gateway-03                       stopped
+lab-03-test-01                   stopped

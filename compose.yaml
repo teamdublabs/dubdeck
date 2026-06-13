@@ -1,0 +1,40 @@
+# Example Docker Compose for Dubdeck. Copy this into your deployment, point it
+# at your own config.yaml + SSH key, and adjust the published port. The default
+# bind is 127.0.0.1 only — never expose the port to the LAN without enabling auth.
+services:
+  dubdeck:
+    build:
+      context: .
+      # On Docker Desktop for Mac, the bind-mounted SSH key is owned by your
+      # host uid under VirtioFS — build with the matching uid so it stays
+      # readable, e.g.: args: { PUID: "501" }
+      # args:
+      #   PUID: "1000"
+    container_name: dubdeck
+    ports:
+      - "127.0.0.1:8400:8000"   # localhost only — see SECURITY before widening
+    volumes:
+      # Your infrastructure config (hosts/enclaves). See config.example.yaml.
+      - ${DUBDECK_CONFIG:-./config.yaml}:/config.yaml:ro
+      # SSH private key + pinned known_hosts the backend uses to reach hosts.
+      - ./secrets/ssh_key:/run/secrets/ssh_key:ro
+      - ./secrets/known_hosts:/run/secrets/known_hosts:ro
+      - dubdeck-data:/data
+    # Needed only when managing a Parallels host via Docker Desktop for Mac
+    # (the backend reaches the Mac's loopback sshd at host.docker.internal).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    # Hardening: non-root user (set in the image), immutable rootfs, no caps.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      DUBDECK_ALLOWED_HOSTS: "127.0.0.1,localhost"
+
+volumes:
+  dubdeck-data:

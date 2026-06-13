@@ -1,0 +1,1 @@
+[{"Name":"blog","Status":"running(3)","ConfigFiles":"/srv/stacks/blog/compose.yaml"},{"Name":"wiki","Status":"running(1), exited(1)","ConfigFiles":"/srv/stacks/wiki/compose.yaml"},{"Name":"monitoring","Status":"exited(3)","ConfigFiles":"/srv/stacks/monitoring/compose.yaml"},{"Name":"stray","Status":"running(1)","ConfigFiles":"/opt/other/stray/compose.yaml"}]
