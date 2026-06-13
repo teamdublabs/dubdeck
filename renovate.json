@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "labels": ["dependencies"],
+  "pep621": { "enabled": true },
+  "npm": { "enabled": true },
+  "dockerfile": { "enabled": true },
+  "lockFileMaintenance": { "enabled": true, "schedule": ["before 6am on saturday"] },
+  "packageRules": [
+    {
+      "description": "Group all non-major bumps into one weekly PR — solo-dev sanity",
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "non-major dependencies",
+      "schedule": ["before 6am on saturday"]
+    }
+  ]
+}

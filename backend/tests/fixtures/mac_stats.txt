@@ -1,0 +1,37 @@
+{ 2.41 2.48 2.35 }
+137438953472
+Mach Virtual Memory Statistics: (page size of 16384 bytes)
+Pages free:                                  1570265.
+Pages active:                                3218474.
+Pages inactive:                              3058461.
+Pages speculative:                            168679.
+Pages throttled:                                   0.
+Pages wired down:                             259989.
+Pages purgeable:                              130225.
+"Translation faults":                      603696081.
+Pages copy-on-write:                        47070054.
+Pages zero filled:                        1303761765.
+Pages reactivated:                            818043.
+Pages purged:                                4072779.
+File-backed pages:                           2021239.
+Anonymous pages:                             4424375.
+Pages stored in compressor:                   153203.
+Pages occupied by compressor:                  44807.
+Decompressions:                                93606.
+Compressions:                                 304848.
+Pageins:                                    18783705.
+Pageouts:                                       5373.
+Swapins:                                           0.
+Swapouts:                                          0.
+Pages tagged:                                 355512.
+Pages tagged resident:                        343040.
+Pages tagged compressed:                       12472.
+Pages tag-storage:                            262144.
+Pages tag-storage holding tags:                11885.
+Pages tag-storage free:                         5921.
+Pages tag-storage non-tag pageable:           244326.
+Pages tag-storage non-tag wired:                  12.
+Bytes of compressed tags:                    1797824.
+Tagged compressions:                           19679.
+Tagged decompressions:                          6832.
+/dev/disk3s5  1948404040 1743008648 182353764    91%    /System/Volumes/Data

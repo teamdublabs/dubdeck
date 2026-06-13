@@ -1,0 +1,18 @@
+{
+	"{b3d45d24-2ba1-4124-91c7-2b67c111306d}": {
+	"name": "Clean",
+	"date": "2026-04-18 19:57:44",
+	"state": "poweroff",
+	"current": false,
+	"parent": ""
+}
+,
+	"{63196dc0-c8b0-44a9-934b-c0576fdd82a1}": {
+	"name": "updates",
+	"date": "2026-05-20 02:21:41",
+	"state": "poweron",
+	"current": true,
+	"parent": "{b3d45d24-2ba1-4124-91c7-2b67c111306d}"
+}
+
+}

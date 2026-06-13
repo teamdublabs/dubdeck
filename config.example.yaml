@@ -1,0 +1,123 @@
+# Dubdeck configuration — copy to config.yaml and edit for your deployment.
+#
+# This file is your infrastructure inventory: the hosts Dubdeck can reach, the
+# providers that manage resources on them, and the groups it displays. It is
+# declarative data, not application settings — module toggles, auth, and
+# branding live in the app's settings store (the Settings window), not here.
+#
+# Secrets never go in this file. SSH keys and any module tokens are mounted or
+# passed as env vars (referenced by name); this file only names the user to
+# connect as. Addresses below use the RFC 5737 documentation range
+# (192.0.2.0/24) — replace them with addresses your deployment can reach.
+# Prefer stable IPs (or a VPN/tailnet IP) over hostnames local DNS might shadow.
+
+hosts:
+  # A host is a machine Dubdeck executes on. The key (e.g. "linux01") is the
+  # name shown in the UI and referenced by providers below.
+  linux01:
+    transport: ssh
+    address: 192.0.2.10     # IP or hostname the backend can SSH to
+    user: labuser           # SSH user — required, no default
+    port: 22                # optional, defaults to 22
+    stats: linux            # host load/mem/disk source: linux | macos | null
+
+  # transport: local runs commands on the box Dubdeck itself runs on — no SSH.
+  # Useful when the backend lives on a machine that also hosts VMs/containers.
+  this-box:
+    transport: local
+    stats: linux
+
+providers:
+  # A provider is one instance of a provider type bound to a host. The id is how
+  # resources are referenced (provider-id/resource-id) in groups below.
+  # Types: libvirt | parallels | docker | compose | proxmox | hyperv
+  - id: lab-kvm
+    type: libvirt
+    host: linux01
+  - id: local-kvm
+    type: libvirt
+    host: this-box
+
+  # Docker containers on a host running the Docker CLI (the SSH user must be in
+  # the `docker` group). Resources are containers, keyed by container name.
+  - id: linux01-docker
+    type: docker
+    host: linux01
+
+  # Compose stacks. `stacks_dir` holds `<name>/compose.yaml` stacks (the Dockge
+  # layout) and is required for compose providers.
+  - id: linux01-stacks
+    type: compose
+    host: linux01
+    stacks_dir: /home/labuser/docker/stacks
+
+  # Proxmox VE — the first API provider: no host/transport, a URL + API token
+  # instead. Manages qemu VMs and lxc containers across the cluster's nodes;
+  # resource ids are node/vmid. The token secret is read from the named env var,
+  # never inline. verify_tls: false is the self-signed escape hatch (logs a
+  # warning). See docs/providers/proxmox.md for the token-creation walkthrough.
+  # (beta — tested against API mocks; reports welcome.)
+  # - id: pve
+  #   type: proxmox
+  #   url: https://192.0.2.20:8006
+  #   token_id: dubdeck@pam!dubdeck
+  #   token_secret_env: DUBDECK_PVE_TOKEN
+  #   verify_tls: true
+
+  # Hyper-V VMs on a Windows host reached over SSH-to-PowerShell. A command
+  # provider like docker/libvirt — binds to an SSH host. The Windows host needs
+  # the OpenSSH Server feature with PowerShell as its default shell; see
+  # docs/providers/hyperv.md for setup (incl. the administrators_authorized_keys
+  # ACL gotcha). (experimental.)
+  # - id: winhost-hyperv
+  #   type: hyperv
+  #   host: winhost      # define this host above with stats: null
+
+groups:
+  # A group is a named collection of resources for display + bulk ops, shown as
+  # one desktop window. Members are explicit provider-id/resource-id refs.
+  research:
+    label: "Research Lab"
+    members:
+      - lab-kvm/research-fw
+      - lab-kvm/research-a
+      - lab-kvm/research-b
+    policies:
+      # start_first members come up first and stop last (the gateway tier).
+      start_first: [lab-kvm/research-fw]
+      # Wait until this resource reports RUNNING before starting the rest.
+      ready_probe: { ref: lab-kvm/research-fw }
+      # Snapshot every non-start_first member before stopping it (recoverable).
+      snapshot_before_stop: true
+
+  # An `auto:` group tracks a provider's full live resource list instead of a
+  # hand-written member list — essential for churn-heavy providers (Docker):
+  # containers and stacks appear/disappear without ever editing this file.
+  local-vms:
+    label: "Local VMs"
+    auto: local-kvm
+
+  containers:
+    label: "Containers"
+    auto: linux01-docker
+
+  stacks:
+    label: "Compose Stacks"
+    auto: linux01-stacks
+
+# Optional modules live under `modules:` and are toggled in Settings. Core never
+# parses this — each module reads its own section. The egress module (Tailscale
+# exit-node egress with server-side auto-revoke) is off by default; see
+# docs/pro-tips for a worked setup. Example shape:
+#
+# modules:
+#   egress:
+#     gateways:
+#       research:
+#         host: linux01            # reach via a core host's transport; OR
+#         # exec_on: linux01       #   run `prlctl exec <vm>` on a core host (Parallels); OR
+#         # vm: research-fw        #   (exec_on needs vm)
+#         # address: 192.0.2.50    #   a direct SSH target the module owns (KVM gateway
+#         # user: labuser          #   VM, no prlctl channel) — so it isn't listed as a host
+#         exit_node: relay-01
+#         mode: on-demand          # on-demand (toggleable) | permanent

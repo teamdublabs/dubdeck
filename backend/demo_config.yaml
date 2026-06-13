@@ -1,0 +1,98 @@
+# Demo config for demo_server.py — fictional, NOT a real deployment. Mirrors the
+# test fixture (tests/fixtures/config.yaml) and adds the Phase 5 Docker + compose
+# providers on server01 so the desktop shows container + stack windows.
+
+hosts:
+  workstation:
+    transport: ssh
+    address: host.docker.internal
+    port: 2222
+    user: labuser
+    stats: macos
+  server01:
+    transport: ssh
+    address: 192.0.2.20
+    user: labuser
+    stats: linux
+  relay-fw:
+    transport: ssh
+    address: 192.0.2.32
+    user: labuser
+    stats: null
+
+providers:
+  - id: host02-parallels
+    type: parallels
+    host: workstation
+  - id: host01-kvm
+    type: libvirt
+    host: server01
+  - id: edge-docker
+    type: docker
+    host: server01
+  - id: edge-stacks
+    type: compose
+    host: server01
+    stacks_dir: /srv/stacks
+
+groups:
+  lab-03:
+    label: Lab 03
+    members:
+      - host02-parallels/gateway-03
+      - host02-parallels/lab-03-dev-01
+      - host02-parallels/lab-03-dnd-01
+      - host02-parallels/lab-03-test-01
+      - host02-parallels/lab-03-resonantOS-01
+    policies:
+      start_first: [host02-parallels/gateway-03]
+      ready_probe: { ref: host02-parallels/gateway-03 }
+
+  lab-01:
+    label: Lab 01
+    members:
+      - host02-parallels/gateway-01
+      - host02-parallels/pentest-vm
+      - host02-parallels/lab-01-dev-01
+      - host02-parallels/lab-01-dev-02
+      - host02-parallels/windows-vm
+    policies:
+      start_first: [host02-parallels/gateway-01]
+      ready_probe: { ref: host02-parallels/gateway-01 }
+      snapshot_before_stop: true
+
+  lab-02:
+    label: Lab 02
+    members:
+      - host01-kvm/gateway-02
+      - host01-kvm/target-01
+      - host01-kvm/target-02
+    policies:
+      start_first: [host01-kvm/gateway-02]
+      ready_probe: { ref: host01-kvm/gateway-02 }
+
+  containers:
+    label: Containers
+    auto: edge-docker
+
+  stacks:
+    label: Compose Stacks
+    auto: edge-stacks
+
+modules:
+  egress:
+    gateways:
+      lab-03:
+        exec_on: workstation
+        vm: gateway-03
+        exit_node: relay-01
+        mode: permanent
+      lab-01:
+        exec_on: workstation
+        vm: gateway-01
+        exit_node: relay-01
+        mode: on-demand
+      lab-02:
+        host: relay-fw
+        exit_node: relay-01
+        mode: on-demand

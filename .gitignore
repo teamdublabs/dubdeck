@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Runtime state
+*.db
+*.sqlite3
+
+# Local deployment config — keep your real inventory out of the repo.
+# Ship config.example.yaml; your filled-in config.yaml stays local.
+config.yaml
+inventory.yaml
+
+# Secrets — the SSH key must never enter the repo
+*.pem
+id_*
+*.key
+secrets/
+
+# OS
+.DS_Store
+
+# Claude Code local dev config
+.claude/

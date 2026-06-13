@@ -1,0 +1,6 @@
+ Id   Name          State
+------------------------------
+ 1    gateway-02    running
+ -    target-01     shut off
+ -    target-02     shut off
+

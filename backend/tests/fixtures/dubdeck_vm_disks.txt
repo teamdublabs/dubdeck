@@ -1,0 +1,13 @@
+11397356	/Users/labuser/Parallels/NixOS.pvm
+13738340	/Users/labuser/Parallels/OpenClaw.pvm
+12029624	/Users/labuser/Parallels/Safe Browsing v2.pvm
+10413972	/Users/labuser/Parallels/Ubuntu 24.04.3 ARM64.pvm
+18539496	/Users/labuser/Parallels/lab-01-dev-01.pvm
+5490392	/Users/labuser/Parallels/lab-01-dev-02.pvm
+8508272	/Users/labuser/Parallels/gateway-01.pvm
+93914044	/Users/labuser/Parallels/pentest-vm.pvm
+38312072	/Users/labuser/Parallels/windows-vm.pvm
+7893728	/Users/labuser/Parallels/lab-03-dev-01.pvm
+10298532	/Users/labuser/Parallels/lab-03-dnd-01.pvm
+8591084	/Users/labuser/Parallels/gateway-03.pvm
+8725456	/Users/labuser/Parallels/lab-03-test-01.pvm
