@@ -56,6 +56,9 @@ class Provider(BaseModel):
     token_secret_env: str | None = None
     # Homelab self-signed escape hatch; the wiring layer logs a warning when off.
     verify_tls: bool = True
+    # --- xcpng-only: no URL needed, just host + username/password. ---
+    username: str | None = None
+    password: str | None = None
 
 
 class ReadyProbe(BaseModel):

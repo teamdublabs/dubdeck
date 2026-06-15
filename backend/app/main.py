@@ -69,7 +69,9 @@ def build_transports(config: Config) -> dict[str, Transport]:
 def build_providers(config: Config, transports: dict[str, Transport]) -> dict[str, Provider]:
     providers: dict[str, Provider] = {}
     for p in config.providers:
-        if is_command_type(p.type):
+        if p.type == "xcpng":
+            providers[p.id] = _build_xcpng(p, transports)
+        elif is_command_type(p.type):
             options = {"stacks_dir": p.stacks_dir} if p.stacks_dir is not None else None
             providers[p.id] = build_command_provider(p.type, p.id, transports[p.host], options)
         else:
@@ -93,6 +95,41 @@ def _build_api(p) -> Provider:
         verify_tls=p.verify_tls,
     )
     return build_api_provider(p.type, p.id, client)
+
+
+def _build_xcpng(p, _) -> Provider:
+    """Construct an XCP-ng provider — uses XenAPI XML-RPC directly, no HttpClient.
+
+    The provider takes a `host` (XCP-ng address), `username`, and `password`.
+    An optional `token_secret_env` can name an env var holding the password,
+    mirroring the secret-env pattern used by the Proxmox provider.
+    """
+    from app.httpclient import HttpClient
+
+    if not p.host:
+        raise ValueError(f"provider {p.id!r}: 'xcpng' requires a 'host' field")
+
+    # Resolve password: prefer inline, fall back to env var.
+    password = p.password
+    if not password and p.token_secret_env:
+        password = os.environ.get(p.token_secret_env, "")
+    if not password:
+        raise ValueError(
+            f"provider {p.id!r}: 'xcpng' requires either 'password' or "
+            f"'token_secret_env' pointing to an env var"
+        )
+
+    # verify_tls defaults to False for homelab self-signed certs.
+    verify_ssl = p.verify_tls
+
+    return XCPNgProvider(
+        p.id,
+        HttpClient(f"https://{p.host}"),  # unused by XCPNgProvider but required by interface
+        host=p.host,
+        username=p.username or "root",
+        password=password,
+        verify_ssl=verify_ssl,
+    )
 
 
 def wire(app: FastAPI, config: Config, transports: dict[str, Transport]) -> None:
