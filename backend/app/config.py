@@ -129,14 +129,24 @@ class Config(BaseModel):
                 if p.type == "compose" and not p.stacks_dir:
                     raise ValueError(f"provider {p.id!r}: compose providers require 'stacks_dir'")
             else:
-                # API provider (proxmox): URL + token, no host.
-                if not p.url:
-                    raise ValueError(f"provider {p.id!r}: '{p.type}' providers require a 'url'")
-                if not p.token_id or not p.token_secret_env:
-                    raise ValueError(
-                        f"provider {p.id!r}: '{p.type}' providers require "
-                        "'token_id' and 'token_secret_env'"
-                    )
+                # API provider (proxmox or xcpng).
+                if p.type == "xcpng":
+                    # xcpng uses host + username/password, not URL + token
+                    if not p.host:
+                        raise ValueError(f"provider {p.id!r}: 'xcpng' requires a 'host'")
+                    if not p.password and not p.token_secret_env:
+                        raise ValueError(
+                            f"provider {p.id!r}: 'xcpng' requires 'password' or "
+                            "'token_secret_env'"
+                        )
+                else:
+                    if not p.url:
+                        raise ValueError(f"provider {p.id!r}: '{p.type}' providers require a 'url'")
+                    if not p.token_id or not p.token_secret_env:
+                        raise ValueError(
+                            f"provider {p.id!r}: '{p.type}' providers require "
+                            "'token_id' and 'token_secret_env'"
+                        )
 
         for name, group in self.groups.items():
             if group.auto and group.members:
