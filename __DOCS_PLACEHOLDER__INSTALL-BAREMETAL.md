@@ -102,6 +102,53 @@ Or add it to PM2's environment (see step 5).
 
 ---
 
+## 4b. Add a Docker provider (optional)
+
+Docker provider works with a remote Docker host accessed via SSH.
+On the Docker host VM, ensure the user has Docker group membership:
+
+```bash
+sudo usermod -aG docker <username>
+# log out and back in for group change to take effect
+```
+
+On the Dubdeck host, ensure:
+- Docker CLI is installed (`~/.local/bin/docker`)
+- SSH key auth to the Docker host is set up (`~/.ssh/id_rsa` in known_hosts)
+- `DOCKER_HOST=ssh://user@<docker-host-ip>` is set in the environment
+
+Test from the Dubdeck host:
+```bash
+export DOCKER_HOST=ssh://test@__IP__
+docker ps   # should list containers
+```
+
+Then add to `config.yaml`:
+```yaml
+hosts:
+  local-docker:
+    transport: local
+    stats: null
+
+providers:
+  - id: local-docker
+    type: docker
+    host: local-docker
+
+groups:
+  containers:
+    label: "Containers"
+    auto: local-docker
+```
+
+Add to `start.sh`:
+```bash
+export DOCKER_HOST=ssh://test@__IP__
+export PATH=/home/pacman/.local/bin:$PATH
+```
+
+---
+
 ## 5. Register with PM2
 
 ```bash
