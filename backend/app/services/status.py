@@ -210,6 +210,11 @@ class StatusService:
         for node_stats in node_stat_results:
             hosts.update(node_stats)
 
+        import logging
+        logging.getLogger().warning(f"DEBUG _build provider_results: {provider_results}")
+        listings = dict(provider_results)
+        hosts = dict(host_results)
+        logging.getLogger().warning(f"DEBUG _build listings: {listings}")
         groups: dict[str, Any] = {}
         for name, group in self._config.groups.items():
             if group.auto:
