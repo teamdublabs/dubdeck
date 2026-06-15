@@ -125,9 +125,12 @@ cross-site requests to `/api`.
 | KVM / libvirt | `virsh` | ✅ Current |
 | Parallels | `prlctl` | ✅ Current |
 | Docker | `docker` | ✅ Current |
+| **Podman** | `podman` | ✅ Current |
 | Docker Compose stacks | `docker compose` | ✅ Current |
-| Proxmox | Proxmox API | 🛣️ Untested |
-| Hyper-V |  | 🛣️ Untested |
+| **XCP-ng** | **XenAPI XML-RPC (direct, no `xe` CLI)** | ✅ **Live — 35 VMs** |
+| **Hyper-V** | **PowerShell over WinRM/SSH** | ✅ Spec done |
+| **Proxmox VE** | **Proxmox REST API** | 🛣️ Spec done |
+| **Rancher Kubernetes** | **Rancher API v3 + k8s proxy** | 🛣️ Spec done |
 
 > Each provider is one instance of a provider *type* bound to a host. Adding hardware is a
 > config edit, never a code change.
@@ -290,8 +293,18 @@ dubdeck/
   backend/
     app/
       main.py             — FastAPI app + routers
-      sshlayer.py         — Transport protocol + SSH impl + FakeTransport
-      hypervisors.py      — prlctl / virsh command builders + pure-function parsers
+      config.py           — Config loading + Pydantic models
+      transports/         — Transport abstraction (SSH, local, fake for tests)
+      providers/          — One file per provider type:
+        base.py           — Provider interface, Capability enum, CommandProvider base
+        docker.py         — Docker + Podman (binary_name configurable)
+        xcpng.py          — XCP-ng via direct XenAPI XML-RPC
+        proxmox.py        — Proxmox REST API (HttpClient-backed)
+        parallels.py      — Parallels prlctl
+        libvirt.py        — KVM virsh
+        hyperv.py         — Windows Hyper-V PowerShell
+        compose.py        — Docker Compose stacks
+        rancher.py        — Rancher Kubernetes (planned)
       egress.py           — egress engine: set / revoke / reconcile / retry sweep
       status.py           — stale-while-revalidate status cache
       opslog.py           — SQLite ops log
@@ -302,8 +315,11 @@ dubdeck/
       apps/               — group windows, Lab Monitor, Ops Log, Settings
       api.ts              — typed API client
   docs/
-    OSS-REFACTOR-PLAN.md  — the public → v1.0 roadmap
-    pro-tips/             — optional hardening guides
+    PROVIDER-REFERENCE.md — full provider documentation (commands, capabilities, config)
+    PROXMOX-PROVIDER-SPEC.md
+    RANCHER-PROVIDER-SPEC.md
+    HYPERV-PROVIDER-SPEC.md
+    INSTALL-BAREMETAL.md  — production install guide
 ```
 
 </details>

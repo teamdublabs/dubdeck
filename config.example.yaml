@@ -30,7 +30,7 @@ hosts:
 providers:
   # A provider is one instance of a provider type bound to a host. The id is how
   # resources are referenced (provider-id/resource-id) in groups below.
-  # Types: libvirt | parallels | docker | compose | proxmox | hyperv
+  # Types: libvirt | parallels | docker | podman | compose | xcpng | proxmox | hyperv | rancher
   - id: lab-kvm
     type: libvirt
     host: linux01
@@ -43,6 +43,22 @@ providers:
   - id: linux01-docker
     type: docker
     host: linux01
+
+  # Podman — identical to Docker provider, just uses `podman` CLI instead.
+  # Set binary_name to "podman" or omit (defaults to "podman" for podman type).
+  # - id: linux01-podman
+  #   type: podman
+  #   host: linux01
+
+  # XCP-ng — direct XenAPI XML-RPC (no xe CLI, no SSH tunnel needed).
+  # Connects to the XCP-ng host on port 443. Username defaults to "root".
+  # Password from env var (never inline). verify_tls: false for self-signed certs.
+  # - id: mars-xcp
+  #   type: xcpng
+  #   host: 192.0.2.20
+  #   username: root
+  #   token_secret_env: MARS_PASSWORD
+  #   verify_tls: false
 
   # Compose stacks. `stacks_dir` holds `<name>/compose.yaml` stacks (the Dockge
   # layout) and is required for compose providers.
