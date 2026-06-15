@@ -287,11 +287,13 @@ class XCPNgProvider(Provider):
         sess = await self._async_session()
         loop = asyncio.get_event_loop()
         try:
-            console = await loop.run_in_executor(
-                None, lambda: sess.xenapi.VM.get_console(rid)
+            console_refs = await loop.run_in_executor(
+                None, lambda: sess.xenapi.VM.get_consoles(rid)
             )
+            if not console_refs:
+                return "(no console available)"
             uri = await loop.run_in_executor(
-                None, lambda: sess.xenapi.console.get_location(console)
+                None, lambda: sess.xenapi.console.get_location(console_refs[0])
             )
             return uri
         except Exception as e:
@@ -300,16 +302,20 @@ class XCPNgProvider(Provider):
     async def console(self, rid: str) -> str:
         """Return the VNC/RDP console URL for a VM.
 
-        Queries XenAPI VM.get_console and returns the location string —
-        typically an HTML5 console URL of the form:
-            https://<xcp-ng-host>/consoles/<vm-uuid>/
-        or a direct vnc://<host>:<port> URI.
+
+        Uses VM.get_consoles → console.get_location to get the HTML5 console URL.
+        Returns a URL like https://<xcp-ng-host>/console?uuid=<vm-uuid> which the
+        frontend opens in a new tab.
         """
         sess = await self._async_session()
         loop = asyncio.get_event_loop()
-        console_ref = await loop.run_in_executor(
-            None, lambda: sess.xenapi.VM.get_console(rid)
+        console_refs = await loop.run_in_executor(
+            None, lambda: sess.xenapi.VM.get_consoles(rid)
         )
+        if not console_refs:
+            raise RuntimeError("no console available for this VM")
+        # Use the first console (primary VNC/RFB console)
+        console_ref = console_refs[0]
         return await loop.run_in_executor(
             None, lambda: sess.xenapi.console.get_location(console_ref)
         )
