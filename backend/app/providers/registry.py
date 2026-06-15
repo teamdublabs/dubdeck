@@ -11,7 +11,7 @@ from typing import Any
 from app.httpclient import HttpClient
 from app.providers.base import CommandProvider, Provider
 from app.providers.compose import ComposeProvider
-from app.providers.docker import DockerProvider
+from app.providers.docker import DockerProvider, PodmanProvider
 from app.providers.hyperv import HyperVProvider
 from app.providers.libvirt import LibvirtProvider
 from app.providers.parallels import ParallelsProvider
@@ -28,6 +28,7 @@ PROVIDER_TYPES: dict[str, type[Provider]] = {
     ParallelsProvider.type_name: ParallelsProvider,
     LibvirtProvider.type_name: LibvirtProvider,
     DockerProvider.type_name: DockerProvider,
+    PodmanProvider.type_name: PodmanProvider,
     ComposeProvider.type_name: ComposeProvider,
     HyperVProvider.type_name: HyperVProvider,
     ProxmoxProvider.type_name: ProxmoxProvider,

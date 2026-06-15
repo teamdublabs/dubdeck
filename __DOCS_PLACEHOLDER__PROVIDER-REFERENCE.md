@@ -95,14 +95,83 @@
 
 **Capabilities:** `start` · `stop` · `restart` · `logs`
 
+**Config fields:**
+
+| Field | Required | Default | Description |
+|---|---|---|---|
+| `host` | ✅ | — | SSH host with Docker CLI |
+| `binary_name` | — | `docker` | CLI binary name; set to `podman` for a podman provider, or a path |
+
+**Example — Docker provider:**
+```yaml
+hosts:
+  local-docker:
+    transport: local
+providers:
+  - id: local-docker
+    type: docker
+    host: local-docker
+    # binary_name defaults to "docker" — omit unless you need something else
+```
+
+**Example — Podman provider:**
+```yaml
+hosts:
+  local-podman:
+    transport: local
+providers:
+  - id: local-podman
+    type: podman
+    host: local-podman
+    binary_name: podman   # explicitly set, or omit (defaults to binary_name class attr)
+```
+
 **Notes:**
 - No snapshot or suspend (containers don't support it)
 - State from JSON `State` field — not the human `Status` string (avoids parsing "Up 3 days (healthy)")
 - `stop_is_graceful = False` (`docker stop` does SIGTERM→SIGKILL internally)
+- The `binary_name` field is also accepted on `docker` type to select a non-standard binary or path
 
 ---
 
-### 4 · compose — Docker Compose stacks / docker compose
+### 4 · podman — Podman containers / podman
+
+| | |
+|---|---|
+| **Type name** | `podman` |
+| **Backend** | `podman` CLI over SSH |
+| **Transport** | `CommandProvider` (SSHTransport) |
+| **API** | None |
+| **Kind** | CONTAINER |
+| **Status** | ✅ Current |
+
+**Commands:**
+
+| Operation | Command |
+|---|---|
+| List containers | `podman ps -a --format '{{json .}}'` |
+| Start | `podman start <id>` |
+| Stop | `podman stop <id>` |
+| Restart | `podman restart <id>` |
+| Logs | `podman logs --tail <n> <id> 2>&1` |
+
+**Capabilities:** `start` · `stop` · `restart` · `logs`
+
+**Config fields:**
+
+| Field | Required | Default | Description |
+|---|---|---|---|
+| `host` | ✅ | — | SSH host with Podman CLI |
+| `binary_name` | — | `podman` | CLI binary name |
+
+**Notes:**
+- Full `podman` provider type — same implementation as `docker` provider, just different default binary
+- `PodmanProvider` extends `DockerProvider` with `binary_name = "podman"`
+- All capabilities, output parsing, and behaviour are identical to the Docker provider
+
+---
+
+### 5 · compose — Docker Compose stacks / docker compose
 
 | | |
 |---|---|
@@ -131,7 +200,7 @@
 
 ---
 
-### 5 · hyperv — Windows Hyper-V / PowerShell
+### 6 · hyperv — Windows Hyper-V / PowerShell
 
 | | |
 |---|---|
@@ -164,7 +233,7 @@
 
 ---
 
-### 6 · proxmox — Proxmox VE / REST API
+### 7 · proxmox — Proxmox VE / REST API
 
 | | |
 |---|---|
@@ -202,7 +271,7 @@
 
 ## Missing Provider
 
-### 7 · xcp — XCP-ng / XAPI (XML-RPC)
+### 8 · xcp — XCP-ng / XAPI (XML-RPC)
 
 | | |
 |---|---|

@@ -74,8 +74,13 @@ def build_providers(config: Config, transports: dict[str, Transport]) -> dict[st
         if p.type == "xcpng":
             providers[p.id] = _build_xcpng(p, transports)
         elif is_command_type(p.type):
-            options = {"stacks_dir": p.stacks_dir} if p.stacks_dir is not None else None
-            providers[p.id] = build_command_provider(p.type, p.id, transports[p.host], options)
+            options: dict[str, Any] = {}
+            if p.stacks_dir is not None:
+                options["stacks_dir"] = p.stacks_dir
+            # binary_name for docker/podman — null means use the class default ("docker").
+            if p.binary_name is not None:
+                options["binary_name"] = p.binary_name
+            providers[p.id] = build_command_provider(p.type, p.id, transports[p.host], options if options else None)
         else:
             providers[p.id] = _build_api(p)
     return providers

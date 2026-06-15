@@ -59,6 +59,8 @@ class Provider(BaseModel):
     # --- xcpng-only: no URL needed, just host + username/password. ---
     username: str | None = None
     password: str | None = None
+    # --- docker/podman: configurable binary name (defaults to "docker"). ---
+    binary_name: str | None = None
 
 
 class ReadyProbe(BaseModel):

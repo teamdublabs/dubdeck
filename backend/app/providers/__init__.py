@@ -11,6 +11,7 @@ from app.providers.base import (
     Snapshot,
     Unsupported,
 )
+from app.providers.docker import DockerProvider, PodmanProvider
 from app.providers.registry import (
     PROVIDER_TYPES,
     build_api_provider,
@@ -23,6 +24,8 @@ __all__ = [
     "CAPABILITY_METHODS",
     "Capability",
     "CommandProvider",
+    "DockerProvider",
+    "PodmanProvider",
     "Provider",
     "Resource",
     "ResourceKind",

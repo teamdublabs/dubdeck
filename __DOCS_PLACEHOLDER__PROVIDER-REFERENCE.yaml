@@ -97,9 +97,49 @@ providers:
       - "State from JSON State field — not human Status string (avoids parsing 'Up 3 days (healthy)')"
       - "No snapshot or suspend (containers do not support it)"
       - "docker stop does SIGTERM then SIGKILL internally — no separate force_stop"
+      - "binary_name field allows selecting a non-standard binary or path"
+    config_options:
+      binary_name:
+        description: "CLI binary name (default: 'docker'). Can be a path or alternate binary name."
+        required: false
+        default: docker
     source_file: app/providers/docker.py
 
-  # ── 4. compose ─────────────────────────────────────────────────────────────
+  # ── 4. podman ───────────────────────────────────────────────────────────────
+  - id: podman
+    type_name: podman
+    name: "Podman containers"
+    backend: podman
+    transport: CommandProvider
+    shell: SSH (shlex.quote)
+    api: null
+    kind: CONTAINER
+    status: current
+    stop_is_graceful: false
+    capabilities:
+      - start
+      - stop
+      - restart
+      - logs
+    commands:
+      list: "podman ps -a --format '{{json .}}'"
+      start: "podman start <id>"
+      stop: "podman stop <id>"
+      restart: "podman restart <id>"
+      logs: "podman logs --tail <n> <id> 2>&1"
+    config_options:
+      binary_name:
+        description: "CLI binary name (default: 'podman'). Can be a path or alternate binary name."
+        required: false
+        default: podman
+    notes:
+      - "PodmanProvider extends DockerProvider with binary_name = 'podman'"
+      - "All capabilities, output parsing, and behaviour identical to Docker provider"
+      - "State from JSON State field — not human Status string"
+      - "No snapshot or suspend (containers do not support it)"
+    source_file: app/providers/docker.py
+
+  # ── 5. compose ─────────────────────────────────────────────────────────────
   - id: compose
     type_name: compose
     name: "Docker Compose stacks"
@@ -129,7 +169,7 @@ providers:
       - "cd into stack dir so docker compose auto-discovers compose.yaml or docker-compose.yml"
     source_file: app/providers/compose.py
 
-  # ── 5. hyperv ───────────────────────────────────────────────────────────────
+  # ── 6. hyperv ───────────────────────────────────────────────────────────────
   - id: hyperv
     type_name: hyperv
     name: "Windows Hyper-V"
@@ -163,7 +203,7 @@ providers:
       - "Snapshot = Checkpoint in Hyper-V terminology"
     source_file: app/providers/hyperv.py
 
-  # ── 6. proxmox ──────────────────────────────────────────────────────────────
+  # ── 7. proxmox ──────────────────────────────────────────────────────────────
   - id: proxmox
     type_name: proxmox
     name: "Proxmox VE"
@@ -200,7 +240,7 @@ providers:
       - "Node/vmid validated against allowlists before URL path injection"
     source_file: app/providers/proxmox.py
 
-  # ── 7. xcp (IMPLEMENTED — untested) ────────────────────────────────────────
+  # ── 8. xcp (IMPLEMENTED — untested) ────────────────────────────────────────
   - id: xcp
     type_name: xcp
     name: "XCP-ng (xe CLI)"
@@ -247,6 +287,7 @@ capability_matrix:
   libvirt:        true    true   true         true      false     true           true              false  true
   parallels:      true    true   true         true      false     true           true              false  true
   docker:         true    true   false        false     true      false          false             true   false
+  podman:         true    true   false        false     true      false          false             true   false
   compose:        true    true   false        false     true      false          false             false  false
   hyperv:         true    true   true         true      false     true           true              false  false
   proxmox:        true    true   true         true      false     true           true              false  true
@@ -260,6 +301,7 @@ transports:
       - libvirt
       - parallels
       - docker
+      - podman
       - compose
       - hyperv
       - xcp
@@ -277,6 +319,7 @@ quoting_strategy:
       - libvirt
       - parallels
       - docker
+      - podman
       - compose
       - xcp
   PowerShell (ps_quote — single-quoted literals):
