@@ -168,6 +168,13 @@ export const api = {
       return res.text()
     })
   },
+  // Console URL for CONSOLE-capable resources (VNC/RDP). Opens in a new tab.
+  resourceConsole: (ref: string): Promise<{ url: string }> => {
+    const slash = ref.indexOf("/")
+    const provider = encodeURIComponent(ref.slice(0, slash))
+    const rid = encodeURIComponent(ref.slice(slash + 1))
+    return req(`/resources/${provider}/${rid}/console`)
+  },
   snapshots: (ref: string) => req<SnapshotInfo[]>(resourcePath(ref, "snapshots")),
   createSnapshot: (ref: string, name?: string) =>
     req<{ name: string }>(resourcePath(ref, "snapshots"), { method: "POST", body: JSON.stringify(name ? { name } : {}) }),

@@ -41,6 +41,7 @@ class Capability(StrEnum):
     SNAPSHOT_CREATE = "snapshot_create"
     LOGS = "logs"
     DISK_STATS = "disk_stats"
+    CONSOLE = "console"
 
 
 # Maps each capability to the Provider method that implements it. The contract
@@ -55,6 +56,7 @@ CAPABILITY_METHODS: dict[Capability, str] = {
     Capability.SNAPSHOT_CREATE: "snapshot_create",
     Capability.LOGS: "logs",
     Capability.DISK_STATS: "disk_stats",
+    Capability.CONSOLE: "console",
 }
 
 
@@ -125,6 +127,10 @@ class Provider:
         """resource-id → disk footprint in bytes, for the resources this
         provider sees. Host-level call (one command), not per-resource."""
         raise Unsupported(f"{self.type_name}: disk_stats not supported")
+
+    async def console(self, rid: str) -> str:
+        """Return a URL to open the VM console (VNC/RDP/HTML5)."""
+        raise Unsupported(f"{self.type_name}: console not supported")
 
 
 class CommandProvider(Provider):

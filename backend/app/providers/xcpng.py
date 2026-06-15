@@ -169,6 +169,7 @@ class XCPNgProvider(Provider):
             Capability.SNAPSHOT_CREATE,
             Capability.DISK_STATS,
             Capability.LOGS,
+            Capability.CONSOLE,
         }
     )
 
@@ -295,6 +296,23 @@ class XCPNgProvider(Provider):
             return uri
         except Exception as e:
             return f"(console unavailable: {e})"
+
+    async def console(self, rid: str) -> str:
+        """Return the VNC/RDP console URL for a VM.
+
+        Queries XenAPI VM.get_console and returns the location string —
+        typically an HTML5 console URL of the form:
+            https://<xcp-ng-host>/consoles/<vm-uuid>/
+        or a direct vnc://<host>:<port> URI.
+        """
+        sess = await self._async_session()
+        loop = asyncio.get_event_loop()
+        console_ref = await loop.run_in_executor(
+            None, lambda: sess.xenapi.VM.get_console(rid)
+        )
+        return await loop.run_in_executor(
+            None, lambda: sess.xenapi.console.get_location(console_ref)
+        )
 
     async def disk_stats(self) -> dict[str, int]:
         sess = await self._async_session()

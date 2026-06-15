@@ -29,6 +29,7 @@ from app.modules.egress import EgressConfig, EgressEngine
 from app.modules.egress import router as egress_router
 from app.opslog import OpsLog
 from app.providers import (
+    Capability,
     Provider,
     Unsupported,
     build_api_provider,
@@ -455,6 +456,24 @@ async def resource_logs(provider: str, rid: str, n: int = 200) -> str:
     except Unsupported as exc:
         raise HTTPException(404, str(exc)) from exc
     except RuntimeError as exc:
+        raise HTTPException(502, str(exc)) from exc
+
+
+@app.get("/api/resources/{provider}/{rid:path}/console")
+async def resource_console(provider: str, rid: str) -> dict:
+    """Return the console URL (VNC/RDP) for a resource. The frontend opens it
+    in a new tab — no in-app embedding required for MVP."""
+    if provider not in app.state.providers:
+        raise HTTPException(404, f"unknown provider {provider!r}")
+    p = app.state.providers[provider]
+    if not p.supports(Capability.CONSOLE):
+        raise HTTPException(404, f"provider {provider!r} does not support console")
+    try:
+        url = await p.console(rid)
+        return {"url": url}
+    except Unsupported as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except Exception as exc:
         raise HTTPException(502, str(exc)) from exc
 
 

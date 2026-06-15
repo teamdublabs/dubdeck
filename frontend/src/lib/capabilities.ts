@@ -30,6 +30,7 @@ export interface RowActions {
   canRestart: boolean
   canSnapshot: boolean
   canLogs: boolean
+  canConsole: boolean
 }
 
 /** Derive the button set from a resource's declared capabilities. */
@@ -42,5 +43,6 @@ export function rowActions(capabilities: string[]): RowActions {
     canRestart: has("restart"),
     canSnapshot: has("snapshot_list"),
     canLogs: has("logs"),
+    canConsole: has("console"),
   }
 }

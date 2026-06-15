@@ -77,7 +77,7 @@ function SnapshotPanel({ resourceRef }: { resourceRef: string }) {
 function ResourceRow({ resource, busy, onStart, onStop, onSuspend, onRestart, onLogs, onChange }: {
   resource: ResourceNode; busy: boolean
   onStart: () => void; onStop: () => void; onSuspend: () => void; onRestart: () => void
-  onLogs: () => void; onChange: () => void
+  onLogs: () => void; onConsole: () => void; onChange: () => void
 }) {
   const [showSnaps, setShowSnaps] = useState(false)
   const { ref, name, kind, state, error, capabilities } = resource
@@ -99,6 +99,13 @@ function ResourceRow({ resource, busy, onStart, onStop, onSuspend, onRestart, on
               onClick={onLogs}
               className="rounded-md px-1.5 py-1 text-[11px] text-lab-dim transition hover:bg-white/10 hover:text-white/90"
             >▤</button>
+          )}
+          {act.canConsole && (
+            <button
+              title="Console"
+              onClick={onConsole}
+              className="rounded-md px-1.5 py-1 text-[11px] text-lab-dim transition hover:bg-white/10 hover:text-white/90"
+            >⎙</button>
           )}
           {act.canSnapshot && (
             <button
@@ -247,6 +254,9 @@ export function GroupApp({ name, group, egress, onChange, onOpenLogs }: {
             onSuspend={() => act(r.ref, () => api.suspendResource(r.ref))}
             onRestart={() => act(r.ref, () => api.restartResource(r.ref))}
             onLogs={() => onOpenLogs?.(r.ref, r.name)}
+            onConsole={() => {
+              api.resourceConsole(r.ref).then(({ url }) => window.open(url, "_blank")).catch((e) => alert(`Console error: ${e.message}`))
+            }}
           />
         ))}
       </div>
