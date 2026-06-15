@@ -120,17 +120,22 @@ cross-site requests to `/api`.
 
 ## Providers
 
-| Provider | Backend command | Status |
-|---|---|:---:|
-| KVM / libvirt | `virsh` | ✅ Current |
-| Parallels | `prlctl` | ✅ Current |
-| Docker | `docker` | ✅ Current |
-| **Podman** | `podman` | ✅ Current |
-| Docker Compose stacks | `docker compose` | ✅ Current |
-| **XCP-ng** | **XenAPI XML-RPC (direct, no `xe` CLI)** | ✅ **Live — 35 VMs** |
-| **Hyper-V** | **PowerShell over WinRM/SSH** | ✅ Spec done |
-| **Proxmox VE** | **Proxmox REST API** | 🛣️ Spec done |
-| **Rancher Kubernetes** | **Rancher API v3 + k8s proxy** | 🛣️ Spec done |
+| Provider | Backend | Status |
+|---|---|---|
+| **XCP-ng** | XenAPI XML-RPC (direct, no `xe` CLI) | ✅ **Live — 4 hosts, 91 VMs** |
+| **Docker** | `docker` CLI (remote host via SSH) | ✅ **Live** |
+| **Podman** | `podman` CLI (same code, binary_name switch) | ✅ **Live** |
+| **Proxmox VE** | Proxmox REST API (token auth) | ✅ **Live** |
+| Parallels | `prlctl` | ✅ Spec done |
+| KVM / libvirt | `virsh` | ✅ Spec done |
+| Docker Compose stacks | `docker compose` | ✅ Spec done |
+| Hyper-V | PowerShell over WinRM/SSH | ✅ Spec done |
+| VirtualBox | `VBoxManage` over SSH | ✅ Spec done |
+| Rancher Kubernetes | Rancher API v3 + k8s proxy | ✅ Spec done |
+
+**Live hypervisors:** Mars (35 VMs) · Zeus (26 VMs) · Gamera (25 VMs) · Saturn (5 VMs) · Proxmox/Freya (1 VM)
+
+**Total: 93 resources across 6 providers**
 
 > Each provider is one instance of a provider *type* bound to a host. Adding hardware is a
 > config edit, never a code change.
