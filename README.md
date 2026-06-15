@@ -133,8 +133,6 @@ cross-site requests to `/api`.
 | VirtualBox | `VBoxManage` over SSH | ✅ Spec done |
 | Rancher Kubernetes | Rancher API v3 + k8s proxy | ✅ Spec done |
 
-**Live hypervisors:** Mars (35 VMs) · Zeus (26 VMs) · Gamera (25 VMs) · Saturn (5 VMs) · Proxmox/Freya (1 VM)
-
 **Total: 93 resources across 6 providers**
 
 > Each provider is one instance of a provider *type* bound to a host. Adding hardware is a
