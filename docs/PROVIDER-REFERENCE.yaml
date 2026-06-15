@@ -1,0 +1,283 @@
+# Dubdeck Provider Reference
+# Auto-generated from backend/app/providers/
+# Updated: 2026-06-15
+
+providers:
+  # ── 1. libvirt ──────────────────────────────────────────────────────────────
+  - id: libvirt
+    type_name: libvirt
+    name: "KVM / libvirt"
+    backend: virsh
+    transport: CommandProvider
+    shell: SSH (shlex.quote)
+    api: null
+    kind: VM
+    status: current
+    stop_is_graceful: true
+    capabilities:
+      - start
+      - stop
+      - force_stop
+      - suspend
+      - snapshot_list
+      - snapshot_create
+      - disk_stats
+    commands:
+      list: "virsh list --all"
+      start: "virsh start <vm>"
+      stop: "virsh shutdown <vm>"
+      force_stop: "virsh destroy <vm>"
+      suspend: "virsh managedsave <vm>"
+      snapshot_list: "virsh snapshot-list <vm>"
+      snapshot_create: "virsh snapshot-create-as <vm> --name <name>"
+      disk_stats: "virsh domstats --block --state"
+    notes:
+      - "virsh shutdown is fire-and-forget ACPI — some guests ignore it; ops layer escalates to force_stop"
+      - "virsh destroy does NOT undefine the VM — recoverable via snapshot"
+      - "Managedsave freezes RAM to disk; virsh start resumes from it"
+    source_file: app/providers/libvirt.py
+
+  # ── 2. parallels ────────────────────────────────────────────────────────────
+  - id: parallels
+    type_name: parallels
+    name: "Parallels (macOS)"
+    backend: prlctl
+    transport: CommandProvider
+    shell: SSH (shlex.quote)
+    api: null
+    kind: VM
+    status: current
+    stop_is_graceful: false
+    capabilities:
+      - start
+      - stop
+      - force_stop
+      - suspend
+      - snapshot_list
+      - snapshot_create
+      - disk_stats
+    commands:
+      list: "prlctl list --all -o name,status"
+      start: "prlctl start <vm>"
+      stop: "prlctl stop <vm>"
+      force_stop: "prlctl stop <vm> --kill"
+      suspend: "prlctl suspend <vm>"
+      snapshot_list: "prlctl snapshot-list <vm> -j"
+      snapshot_create: "prlctl snapshot <vm> -n <name>"
+      disk_stats: "dubdeck-vm-disks (forced-command shim)"
+    notes:
+      - "prlctl stop blocks until clean shutdown completes — no escalation loop needed"
+      - "Disk stats route through forced-command SSH shim, not raw du, for security"
+      - "Managedsave freezes RAM to disk; prlctl start resumes from it"
+    source_file: app/providers/parallels.py
+
+  # ── 3. docker ───────────────────────────────────────────────────────────────
+  - id: docker
+    type_name: docker
+    name: "Docker containers"
+    backend: docker
+    transport: CommandProvider
+    shell: SSH (shlex.quote)
+    api: null
+    kind: CONTAINER
+    status: current
+    stop_is_graceful: false
+    capabilities:
+      - start
+      - stop
+      - restart
+      - logs
+    commands:
+      list: "docker ps -a --format '{{json .}}'"
+      start: "docker start <id>"
+      stop: "docker stop <id>"
+      restart: "docker restart <id>"
+      logs: "docker logs --tail <n> <id> 2>&1"
+    notes:
+      - State from JSON State field — not human Status string (avoids parsing 'Up 3 days (healthy)')
+      - No snapshot or suspend (containers do not support it)
+      - docker stop does SIGTERM then SIGKILL internally — no separate force_stop
+    source_file: app/providers/docker.py
+
+  # ── 4. compose ─────────────────────────────────────────────────────────────
+  - id: compose
+    type_name: compose
+    name: "Docker Compose stacks"
+    backend: docker compose
+    transport: CommandProvider
+    shell: SSH (shlex.quote)
+    api: null
+    kind: STACK
+    status: current
+    stop_is_graceful: false
+    capabilities:
+      - start
+      - stop
+      - restart
+    commands:
+      list: "docker compose ls -a --format json"
+      start: "cd <stack_dir> && docker compose up -d"
+      stop: "cd <stack_dir> && docker compose down"
+      restart: "cd <stack_dir> && docker compose restart"
+    config_options:
+      stacks_dir:
+        description: "Directory containing stack subdirectories (Dockge layout)"
+        required: true
+    notes:
+      - "Stack names validated against ^[a-z0-9_-]+$ before path construction (reject, don't quote)"
+      - "Stacks filtered to those whose compose file lives under stacks_dir"
+      - "cd into stack dir so docker compose auto-discovers compose.yaml or docker-compose.yml"
+    source_file: app/providers/compose.py
+
+  # ── 5. hyperv ───────────────────────────────────────────────────────────────
+  - id: hyperv
+    type_name: hyperv
+    name: "Windows Hyper-V"
+    backend: PowerShell
+    transport: CommandProvider
+    shell: SSH (PowerShell, ps_quote NOT shlex.quote)
+    api: null
+    kind: VM
+    status: current
+    stop_is_graceful: true
+    capabilities:
+      - start
+      - stop
+      - force_stop
+      - suspend
+      - snapshot_list
+      - snapshot_create
+    commands:
+      list: "Get-VM | Select-Object Name,@{Name='State';Expression={$_.State.ToString()}} | ConvertTo-Json -Compress"
+      start: "Start-VM -Name '<vm>'"
+      stop: "Stop-VM -Name '<vm>' -Force"
+      force_stop: "Stop-VM -Name '<vm>' -TurnOff -Force"
+      suspend: "Save-VM -Name '<vm>'"
+      snapshot_list: "Get-VMCheckpoint -VMName '<vm>' | Select-Object Name,@{Name='Created';Expression={$_.CreationTime.ToString('o')}} | ConvertTo-Json -Compress"
+      snapshot_create: "Checkpoint-VM -Name '<vm>' -SnapshotName '<name>'"
+    notes:
+      - "Uses PowerShell single-quoted literals for injection protection — NOT shlex.quote (POSIX shell quoting is wrong for PowerShell)"
+      - "State forced to string via .ToString() for PowerShell version stability (5.1 serialises enums as integers, 7 as strings)"
+      - "UTF-8 BOM stripped defensively"
+      - "ConvertTo-Json -Compress produces NDJSON (one JSON object per line)"
+      - "Snapshot = Checkpoint in Hyper-V terminology"
+    source_file: app/providers/hyperv.py
+
+  # ── 6. proxmox ──────────────────────────────────────────────────────────────
+  - id: proxmox
+    type_name: proxmox
+    name: "Proxmox VE"
+    backend: Proxmox REST API
+    transport: HttpClient (direct HTTPS)
+    api: Proxmox API token (PVEAPIToken=<id>=<secret>)
+    kind: VM (qemu + lxc)
+    status: untested
+    stop_is_graceful: true
+    capabilities:
+      - start
+      - stop
+      - force_stop
+      - suspend
+      - snapshot_list
+      - snapshot_create
+      - disk_stats
+    api_endpoints:
+      list_nodes: "GET /api2/json/nodes"
+      list_vms: "GET /api2/json/nodes/{node}/{vtype}"
+      start: "POST /api2/json/nodes/{node}/{vtype}/{vmid}/status/start"
+      stop: "POST /api2/json/nodes/{node}/{vtype}/{vmid}/status/shutdown"
+      force_stop: "POST /api2/json/nodes/{node}/{vtype}/{vmid}/status/stop"
+      suspend: "POST /api2/json/nodes/{node}/{vtype}/{vmid}/status/suspend"
+      snapshot_list: "GET /api2/json/nodes/{node}/{vtype}/{vmid}/snapshot"
+      snapshot_create: "POST /api2/json/nodes/{node}/{vtype}/{vmid}/snapshot"
+      disk_stats: "(from list payload, maxdisk field)"
+      node_stats: "GET /api2/json/nodes/{node}/status"
+    resource_id_format: "{node}/{vmid}"
+    notes:
+      - "First API provider — no Transport/SSH, uses HttpClient directly"
+      - "Mutations are async (POST returns UPID task handle, polled to completion)"
+      - "Both qemu (full VMs) and lxc (containers) tracked as kind=VM"
+      - "Node/vmid validated against allowlists before URL path injection"
+    source_file: app/providers/proxmox.py
+
+  # ── 7. xcp (MISSING — not yet implemented) ─────────────────────────────────
+  - id: xcp
+    type_name: xcp
+    name: "XCP-ng (XenAPI)"
+    backend: XenAPI (XML-RPC over HTTPS)
+    transport: HttpClient (XML-RPC)
+    api: XenAPI session.login_with_password
+    kind: VM
+    status: untested
+    priority: high
+    capabilities:
+      - start
+      - stop
+      - force_stop
+      - suspend
+      - snapshot_list
+      - snapshot_create
+      - disk_stats
+    xenapi_calls:
+      list_vms: "VM.get_all_records"
+      start: "VM.start"
+      stop: "VM.shutdown"
+      force_stop: "VM.hard_shutdown"
+      suspend: "VM.suspend"
+      snapshot_list: "VM.get_snapshots + snapshot.get_record"
+      snapshot_create: "VM.snapshot"
+      disk_stats: "VDI.get_virtual_size per VBD"
+    resource_id_format: "VM UUID or vm-name-label"
+    notes:
+      - "Pattern matches Proxmox (API provider, async tasks, session auth)"
+      - "XML-RPC rather than REST — same HttpClient-backed architecture"
+      - "Treadstone already uses XAPI on Mars/Zeus/Gamera — confirmed working"
+      - "Must handle protected VMs (snapshot of protected VM may need unprotection)"
+      - "Some calls route to pool master only (host.call_plugin)"
+      - "Highest-priority missing provider for the n1h lab"
+    source_file: "NOT YET — backend/app/providers/xcp.py (to be created)"
+
+# ── Capability Matrix ─────────────────────────────────────────────────────────
+capability_matrix:
+  provider:       start   stop   force_stop   suspend   restart   snapshot_list   snapshot_create   logs   disk_stats
+  libvirt:        true    true   true         true      false     true           true              false  true
+  parallels:      true    true   true         true      false     true           true              false  true
+  docker:         true    true   false        false     true      false          false             true   false
+  compose:        true    true   false        false     true      false          false             false  false
+  hyperv:         true    true   true         true      false     true           true              false  false
+  proxmox:        true    true   true         true      false     true           true              false  true
+  xcp:            true    true   true         true      false     true           true              false  true
+
+# ── Transport Architecture ────────────────────────────────────────────────────
+transports:
+  CommandProvider:
+    description: "Commands run through Transport (SSH or local shell). Parsers are pure functions over captured output."
+    providers:
+      - libvirt
+      - parallels
+      - docker
+      - compose
+      - hyperv
+    test_strategy: "FakeTransport fixture — no real SSH in tests"
+  ApiProvider:
+    description: "Direct HttpClient calls to REST or XML-RPC endpoint. Auth tokens in headers. No shell involved."
+    providers:
+      - proxmox
+      - xcp
+    test_strategy: "Mock HttpClient responses in tests"
+
+# ── Quoting Strategy ──────────────────────────────────────────────────────────
+quoting_strategy:
+  POSIX shell (shlex.quote):
+    providers:
+      - libvirt
+      - parallels
+      - docker
+      - compose
+  PowerShell (ps_quote — single-quoted literals):
+    providers:
+      - hyperv
+  None (URL/path allowlist validation):
+    providers:
+      - proxmox
+      - xcp
