@@ -74,7 +74,7 @@ function SnapshotPanel({ resourceRef }: { resourceRef: string }) {
   )
 }
 
-function ResourceRow({ resource, busy, onStart, onStop, onSuspend, onRestart, onLogs, onChange }: {
+function ResourceRow({ resource, busy, onStart, onStop, onSuspend, onRestart, onLogs, onConsole, onChange }: {
   resource: ResourceNode; busy: boolean
   onStart: () => void; onStop: () => void; onSuspend: () => void; onRestart: () => void
   onLogs: () => void; onConsole: () => void; onChange: () => void
