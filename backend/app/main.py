@@ -34,6 +34,7 @@ from app.providers import (
     build_api_provider,
     build_command_provider,
     is_command_type,
+    XCPNgProvider,
 )
 from app.providers.proxmox import auth_header
 from app.services.ops import OpRegistry, ResourceOps

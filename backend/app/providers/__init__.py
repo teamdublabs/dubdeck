@@ -17,6 +17,7 @@ from app.providers.registry import (
     build_command_provider,
     is_command_type,
 )
+from app.providers.xcpng import XCPNgProvider
 
 __all__ = [
     "CAPABILITY_METHODS",
@@ -29,6 +30,7 @@ __all__ = [
     "Snapshot",
     "Unsupported",
     "PROVIDER_TYPES",
+    "XCPNgProvider",
     "build_api_provider",
     "build_command_provider",
     "is_command_type",
