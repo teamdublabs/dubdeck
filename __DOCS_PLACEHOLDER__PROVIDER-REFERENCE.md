@@ -282,3 +282,28 @@ Dubdeck → HttpClient.request(POST, /api2/json/nodes/.../status/start) → HTTP
 - Config validation checks `host` (required for CommandProviders) vs `url`/token (required for API providers) at load time.
 - Quoting strategy differs by shell: libvirt/parallels/docker/compose use `shlex.quote` (POSIX sh). Hyper-V uses PowerShell single-quoted literals (`ps_quote`) — not interchangeable.
 - Snapshot restore and delete are **deliberately absent** from all providers — destructive ops stay manual.
+
+---
+
+## Parallels Provider (Future — Mac Mini 2013)
+
+**Status:** Future roadmap — Mac Mini 2013 is offline, needs to be powered on and configured.
+
+**Use case:** Standalone Parallels test environment for Dubdeck, independent of Mr Awesome's setup.
+
+**Mac Mini 2013 specs:**
+- Haswell platform, can run macOS 12+ (Monterey/Big Sur)
+- Parallels Desktop 18 supports macOS 12+, should work ✅
+- `prlctl` CLI available with Parallels installed
+
+**What to do when Mac Mini is available:**
+1. Install Parallels Desktop (if not already installed)
+2. Enable remote access (System Preferences → Sharing → Remote Login)
+3. Add SSH key to `~/.ssh/authorized_keys` on the Mac
+4. Install Parallels command line tools (`prlctl`)
+5. Configure Dubdeck Parallels provider with Mac Mini IP
+6. Test: list VMs, start/stop, snapshots
+
+**Provider:** Already implemented in `backend/app/providers/parallels.py` — `CommandProvider` via SSH + `prlctl` commands.
+
+**Ref:** `docs/PROVIDER-REFERENCE.yaml` — provider type `parallels`
