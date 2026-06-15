@@ -138,12 +138,9 @@ class StatusService:
             self._kick_refresh()
 
     async def _provider_listing(self, provider_id: str, provider: Provider) -> tuple[str, dict]:
-        import logging, traceback
         try:
             resources = await provider.list_resources()
-            logging.getLogger().warning(f"DEBUG _provider_listing {provider_id}: {len(resources)} resources")
         except Exception as exc:
-            logging.getLogger().warning(f"DEBUG _provider_listing {provider_id}: EXCEPTION {exc}\n{traceback.format_exc()}")
             return provider_id, {"reachable": False, "error": str(exc), "resources": {}}
         caps = sorted(str(c) for c in provider.capabilities)
         return provider_id, {
@@ -210,11 +207,6 @@ class StatusService:
         for node_stats in node_stat_results:
             hosts.update(node_stats)
 
-        import logging
-        logging.getLogger().warning(f"DEBUG _build provider_results: {provider_results}")
-        listings = dict(provider_results)
-        hosts = dict(host_results)
-        logging.getLogger().warning(f"DEBUG _build listings: {listings}")
         groups: dict[str, Any] = {}
         for name, group in self._config.groups.items():
             if group.auto:

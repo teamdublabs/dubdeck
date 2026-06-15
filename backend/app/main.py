@@ -261,24 +261,6 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-# TEMP DEBUG endpoint — remove after diagnosis
-@app.get("/api/debug/providers/{provider_id}/resources")
-async def debug_provider_resources(provider_id: str) -> dict:
-    """Temporary: call list_resources() directly on a provider."""
-    if provider_id not in app.state.providers:
-        raise HTTPException(404, f"unknown provider {provider_id!r}")
-    provider = app.state.providers[provider_id]
-    try:
-        resources = await provider.list_resources()
-        return {
-            "count": len(resources),
-            "resources": [{"id": r.id, "name": r.name, "state": str(r.state)} for r in resources],
-        }
-    except Exception as exc:
-        import traceback
-        return {"error": str(exc), "trace": traceback.format_exc()}
-
-
 class PasswordBody(BaseModel):
     password: str = Field(min_length=1, max_length=256)
 
