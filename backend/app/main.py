@@ -125,7 +125,7 @@ def _build_xcpng(p, _) -> Provider:
 
     return XCPNgProvider(
         p.id,
-        HttpClient(f"https://{p.host}"),  # unused by XCPNgProvider but required by interface
+        None,  # XCPNgProvider manages its own XenAPISession — no HttpClient needed
         host=p.host,
         username=p.username or "root",
         password=password,
