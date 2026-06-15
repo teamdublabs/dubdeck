@@ -33,7 +33,7 @@ from app.providers.base import (
     Snapshot,
 )
 
-API = "/api2/json"
+API = ""
 
 # Path-injection guards. node names and vmids land in URL paths, so they get the
 # same "reject, don't quote" posture the compose provider applies to stack names.
