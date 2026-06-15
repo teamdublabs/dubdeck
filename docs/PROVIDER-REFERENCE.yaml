@@ -94,9 +94,9 @@ providers:
       restart: "docker restart <id>"
       logs: "docker logs --tail <n> <id> 2>&1"
     notes:
-      - State from JSON State field — not human Status string (avoids parsing 'Up 3 days (healthy)')
-      - No snapshot or suspend (containers do not support it)
-      - docker stop does SIGTERM then SIGKILL internally — no separate force_stop
+      - "State from JSON State field — not human Status string (avoids parsing 'Up 3 days (healthy)')"
+      - "No snapshot or suspend (containers do not support it)"
+      - "docker stop does SIGTERM then SIGKILL internally — no separate force_stop"
     source_file: app/providers/docker.py
 
   # ── 4. compose ─────────────────────────────────────────────────────────────
@@ -200,42 +200,46 @@ providers:
       - "Node/vmid validated against allowlists before URL path injection"
     source_file: app/providers/proxmox.py
 
-  # ── 7. xcp (MISSING — not yet implemented) ─────────────────────────────────
+  # ── 7. xcp (IMPLEMENTED — untested) ────────────────────────────────────────
   - id: xcp
     type_name: xcp
-    name: "XCP-ng (XenAPI)"
-    backend: XenAPI (XML-RPC over HTTPS)
-    transport: HttpClient (XML-RPC)
-    api: XenAPI session.login_with_password
+    name: "XCP-ng (xe CLI)"
+    backend: xe CLI over SSH
+    transport: CommandProvider
+    shell: SSH (shlex.quote)
+    api: null
     kind: VM
     status: untested
-    priority: high
+    stop_is_graceful: true
     capabilities:
       - start
       - stop
       - force_stop
+      - restart
       - suspend
       - snapshot_list
       - snapshot_create
       - disk_stats
-    xenapi_calls:
-      list_vms: "VM.get_all_records"
-      start: "VM.start"
-      stop: "VM.shutdown"
-      force_stop: "VM.hard_shutdown"
-      suspend: "VM.suspend"
-      snapshot_list: "VM.get_snapshots + snapshot.get_record"
-      snapshot_create: "VM.snapshot"
-      disk_stats: "VDI.get_virtual_size per VBD"
-    resource_id_format: "VM UUID or vm-name-label"
+      - logs
+    commands:
+      list: "xe vm-list --all"
+      start: "xe vm-start uuid=<uuid>"
+      stop: "xe vm-shutdown uuid=<uuid>"
+      force_stop: "xe vm-force-shutdown uuid=<uuid>"
+      restart: "xe vm-shutdown uuid=<uuid> && xe vm-start uuid=<uuid>"
+      suspend: "xe vm-suspend uuid=<uuid>"
+      snapshot_list: "xe snapshot-list uuid=<uuid>"
+      snapshot_create: "xe snapshot-create uuid=<uuid> snapshot-name-label=<name>"
+      disk_stats: "xe vdi-list vm-uuid=<uuid>"
+      logs: "xe vm-param-get uuid=<uuid> param-name=console-uri"
     notes:
-      - "Pattern matches Proxmox (API provider, async tasks, session auth)"
-      - "XML-RPC rather than REST — same HttpClient-backed architecture"
-      - "Treadstone already uses XAPI on Mars/Zeus/Gamera — confirmed working"
-      - "Must handle protected VMs (snapshot of protected VM may need unprotection)"
-      - "Some calls route to pool master only (host.call_plugin)"
-      - "Highest-priority missing provider for the n1h lab"
-    source_file: "NOT YET — backend/app/providers/xcp.py (to be created)"
+      - "xe CLI over SSHTransport — no API token management needed, no HTTPS cert issues"
+      - "VMs identified by UUID (not name-label) — avoids pool-wide name collisions"
+      - "Templates excluded via is-a-template flag"
+      - "RESTART chains vm-shutdown + vm-start (XCP-ng has no single-command restart)"
+      - "LOGS returns console-uri (VNC URL) — not a text stream; XCP-ng has no shell-accessible console log"
+      - "Highest-priority missing provider for the n1h lab — now IMPLEMENTED"
+    source_file: app/providers/xcpng.py
 
 # ── Capability Matrix ─────────────────────────────────────────────────────────
 capability_matrix:
@@ -246,7 +250,7 @@ capability_matrix:
   compose:        true    true   false        false     true      false          false             false  false
   hyperv:         true    true   true         true      false     true           true              false  false
   proxmox:        true    true   true         true      false     true           true              false  true
-  xcp:            true    true   true         true      false     true           true              false  true
+  xcp:            true    true   true         true      true      true           true              true   true
 
 # ── Transport Architecture ────────────────────────────────────────────────────
 transports:
@@ -258,12 +262,12 @@ transports:
       - docker
       - compose
       - hyperv
+      - xcp
     test_strategy: "FakeTransport fixture — no real SSH in tests"
   ApiProvider:
     description: "Direct HttpClient calls to REST or XML-RPC endpoint. Auth tokens in headers. No shell involved."
     providers:
       - proxmox
-      - xcp
     test_strategy: "Mock HttpClient responses in tests"
 
 # ── Quoting Strategy ──────────────────────────────────────────────────────────
@@ -274,10 +278,10 @@ quoting_strategy:
       - parallels
       - docker
       - compose
+      - xcp
   PowerShell (ps_quote — single-quoted literals):
     providers:
       - hyperv
   None (URL/path allowlist validation):
     providers:
       - proxmox
-      - xcp

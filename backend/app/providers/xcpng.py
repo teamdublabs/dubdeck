@@ -15,7 +15,6 @@ other provider. Destructive ops stay manual.
 """
 
 import shlex
-import uuid as _uuid
 import re
 
 from app.providers.base import (
@@ -67,26 +66,20 @@ def parse_vm_list(output: str) -> dict[str, ResourceState]:
     for line in output.splitlines():
         line = line.rstrip()
         if not line.strip():
-            # End of current VM block — commit if we have a valid UUID
             if current.get("uuid") and current.get("is-a-template", "").lower() != "true":
                 vm_uuid = current["uuid"].strip()
-                name = current.get("name-label", "").strip() or vm_uuid
                 state_raw = current.get("power-state", "").strip()
                 states[vm_uuid] = _parse_power_state(state_raw)
             current = {}
             continue
 
-        # Parse "key ( RO)  : value" and "key ( RW) : value"
         m = re.match(r"^\s*([\w-]+)\s*\(\s*\w+\s*\)\s*:\s*(.*)$", line)
         if not m:
             continue
-        key, val = m.group(1).strip(), m.group(2).strip()
-        current[key] = val
+        current[m.group(1).strip()] = m.group(2).strip()
 
-    # Last VM in output if no trailing blank line
     if current.get("uuid") and current.get("is-a-template", "").lower() != "true":
         vm_uuid = current["uuid"].strip()
-        name = current.get("name-label", "").strip() or vm_uuid
         state_raw = current.get("power-state", "").strip()
         states[vm_uuid] = _parse_power_state(state_raw)
 
@@ -106,7 +99,6 @@ def parse_snapshots(output: str) -> list[Snapshot]:
     """
     snaps: list[Snapshot] = []
     current: dict[str, str] = {}
-
     timestamp_re = re.compile(r"(\d{8}[-_]\d{6})")
 
     for line in output.splitlines():
@@ -118,16 +110,13 @@ def parse_snapshots(output: str) -> list[Snapshot]:
                 ts_match = timestamp_re.search(name_label)
                 created = ""
                 if ts_match:
-                    raw_ts = ts_match.group(1)
-                    # Normalise separators: YYYYMMDD-HHMMSS or YYYYMMDD_HHMMSS
-                    normalised = raw_ts.replace("_", "-", 1)
-                    # Convert to a sortable string: YYYY-MM-DD HH:MM:SS
+                    normalised = ts_match.group(1).replace("_", "-", 1)
                     try:
                         import datetime
                         dt = datetime.datetime.strptime(normalised[:15], "%Y%m%d-%H%M%S")
                         created = dt.strftime("%Y-%m-%d %H:%M:%S")
                     except ValueError:
-                        created = raw_ts
+                        created = ts_match.group(1)
                 snaps.append(Snapshot(name=snap_uuid, created=created, current=False))
             current = {}
             continue
@@ -206,6 +195,13 @@ def force_stop_command(vm_uuid: str) -> str:
     return f"xe vm-force-shutdown uuid={shlex.quote(vm_uuid)}"
 
 
+def restart_command(vm_uuid: str) -> str:
+    # XCP-ng has no single-command graceful restart.  We chain shutdown+start
+    # so the ops layer can use the standard stop_is_graceful escalation path.
+    # The && means the start only fires if shutdown succeeded (exit 0).
+    return f"xe vm-shutdown uuid={shlex.quote(vm_uuid)} && xe vm-start uuid={shlex.quote(vm_uuid)}"
+
+
 def suspend_command(vm_uuid: str) -> str:
     return f"xe vm-suspend uuid={shlex.quote(vm_uuid)}"
 
@@ -217,12 +213,24 @@ def snapshot_list_command(vm_uuid: str) -> str:
 def snapshot_create_command(vm_uuid: str, name: str) -> str:
     # Snapshot name-label is a display string — safe because it never reaches
     # a shell (xe accepts it as a string arg).  We embed it directly.
-    safe_name = shlex.quote(name)
-    return f"xe snapshot-create uuid={shlex.quote(vm_uuid)} snapshot-name-label={safe_name}"
+    return (
+        f"xe snapshot-create uuid={shlex.quote(vm_uuid)}"
+        f" snapshot-name-label={shlex.quote(name)}"
+    )
 
 
 def disk_stats_command(vm_uuid: str) -> str:
     return XE_VDI_LIST.format(uuid=shlex.quote(vm_uuid))
+
+
+def logs_command(vm_uuid: str) -> str:
+    # XCP-ng exposes guest console output as a param on the VM record.
+    # `xe vm-param-get uuid=<uuid> param-name=console-uri` returns the
+    # primary console URL (e.g._vnc_console/...?  …).  The UI can use this
+    # to open a VNC/WebSocket session.  This command is the "logs" proxy —
+    # it returns a URL, not text, which is what XCP-ng makes available over
+    # SSH for console data.
+    return f"xe vm-param-get uuid={shlex.quote(vm_uuid)} param-name=console-uri"
 
 
 # ── Provider class ───────────────────────────────────────────────────────────
@@ -234,10 +242,12 @@ class XCPNgProvider(CommandProvider):
             Capability.START,
             Capability.STOP,
             Capability.FORCE_STOP,
+            Capability.RESTART,
             Capability.SUSPEND,
             Capability.SNAPSHOT_LIST,
             Capability.SNAPSHOT_CREATE,
             Capability.DISK_STATS,
+            Capability.LOGS,
         }
     )
     # xe vm-shutdown is fire-and-forget; some guests ignore it.
@@ -261,6 +271,9 @@ class XCPNgProvider(CommandProvider):
     async def force_stop(self, rid: str, timeout: float = 180.0) -> None:
         await self._run_or_raise(force_stop_command(rid), timeout)
 
+    async def restart(self, rid: str, timeout: float = 180.0) -> None:
+        await self._run_or_raise(restart_command(rid), timeout)
+
     async def suspend(self, rid: str, timeout: float = 180.0) -> None:
         await self._run_or_raise(suspend_command(rid), timeout)
 
@@ -273,12 +286,20 @@ class XCPNgProvider(CommandProvider):
     async def snapshot_create(self, rid: str, name: str, timeout: float = 300.0) -> None:
         await self._run_or_raise(snapshot_create_command(rid, name), timeout)
 
+    async def logs(self, rid: str, n: int = 200) -> str:
+        # n is accepted for API compatibility but has no effect — XCP-ng
+        # console access is a VNC URL, not a text stream.  The caller passes
+        # it; we ignore it and return the console URI.
+        result = await self._t.run(logs_command(rid), timeout=30.0)
+        if not result.ok:
+            raise RuntimeError(f"logs failed: {result.stderr}")
+        return result.stdout.strip()
+
     async def disk_stats(self) -> dict[str, int]:
         """Aggregate disk usage across all VDIs for every VM this provider
         can see.  One `xe vm-list` call to get VM UUIDs, then one
         `xe vdi-list vm-uuid=<uuid>` per VM — matching the low-overhead
         pattern of the other providers."""
-        # Get all non-template VM UUIDs
         list_result = await self._t.run(XE_VM_LIST)
         if not list_result.ok:
             raise RuntimeError(f"disk stats failed: {list_result.stderr}")
@@ -290,6 +311,5 @@ class XCPNgProvider(CommandProvider):
             if not result.ok:
                 continue
             for vdi_uuid, util in parse_vdi_list(result.stdout).items():
-                # Namespace key with VM uuid to avoid collisions
                 disks[f"{vm_uuid}/{vdi_uuid}"] = util
         return disks

@@ -207,28 +207,28 @@
 | | |
 |---|---|
 | **Type name** | `xcp` |
-| **Backend** | XenAPI (XML-RPC) over HTTPS |
-| **Transport** | `HttpClient` (XML-RPC, no SSH) |
-| **API** | XenAPI session.login_with_password |
+| **Backend** | `xe` CLI over SSH (XCP-ng host) |
+| **Transport** | `CommandProvider` (SSHTransport) |
+| **API** | None — `xe` commands over SSH |
 | **Kind** | VM |
-| **Status** | 🛣️ Untested — not yet implemented |
+| **Status** | 🛣️ Untested — implementation done, pending live test |
 
-**XenAPI endpoints (key calls):**
+**Commands:**
 
-| Operation | XML-RPC Method |
+| Operation | Command |
 |---|---|
-| List VMs | `VM.get_all_records` or `session.xenapi.VM.get_by_name_label` |
-| Start VM | `VM.start` |
-| Stop (graceful) | `VM.shutdown` |
-| Force stop | `VM.hard_shutdown` |
-| Suspend | `VM.suspend` |
-| Snapshot list | `VM.get_snapshots` → `snapshot.get_record` |
-| Snapshot create | `VM.snapshot` |
-| Disk stats | `VDI.get_virtual_size` per VBD |
+| List all VMs | `xe vm-list --all` |
+| Start VM | `xe vm-start uuid=<uuid>` |
+| Stop (graceful) | `xe vm-shutdown uuid=<uuid>` |
+| Force stop | `xe vm-force-shutdown uuid=<uuid>` |
+| Restart | `xe vm-shutdown uuid=<uuid> && xe vm-start uuid=<uuid>` |
+| Suspend / save RAM | `xe vm-suspend uuid=<uuid>` |
+| Snapshot list | `xe snapshot-list uuid=<uuid>` |
+| Snapshot create | `xe snapshot-create uuid=<uuid> snapshot-name-label=<name>` |
+| Disk stats | `xe vdi-list vm-uuid=<uuid>` |
+| Logs / console | `xe vm-param-get uuid=<uuid> param-name=console-uri` |
 
-**Resource id format:** VM UUID or `vm-name-label` (both stable)
-
-**Capabilities (expected):** `start` · `stop` · `force_stop` · `suspend` · `snapshot_list` · `snapshot_create` · `disk_stats`
+**Capabilities:** `start` · `stop` · `force_stop` · `restart` · `suspend` · `snapshot_list` · `snapshot_create` · `logs` · `disk_stats`
 
 **Notes:**
 - Pattern matches Proxmox (first API provider) — XenAPI is XML-RPC rather than REST, but the architecture is identical: async tasks, session auth, no shell commands
@@ -250,7 +250,7 @@
 | compose | ✅ | ✅ | — | — | ✅ | — | — | — | — |
 | hyperv | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | — | — |
 | proxmox | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | — | ✅ |
-| **xcp (XenAPI)** | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | — | ✅ |
+| **xcp (xe CLI)** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
