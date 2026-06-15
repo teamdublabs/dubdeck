@@ -53,7 +53,7 @@ class XenAPISession:
         self._proxy = xmlrpc.client.ServerProxy(self._url + "/", context=ctx, allow_none=True)
         self._logged_in = False
 
-    def _call(self, method: str, *args) -> xmlrpc.client.Data:
+    def _call(self, method: str, *args) -> dict:
         """Make a raw XenAPI call, returning the full response dict."""
         return getattr(self._proxy, method)(*args)
 
