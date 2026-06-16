@@ -211,7 +211,7 @@ groups:
 
 **Set token:**
 ```bash
-export RANCHER_TOKEN="token-fjltr:__TOKEN__"
+export RANCHER_TOKEN="__RANCHER_TOKEN__"
 ```
 
 Or get a fresh one:
@@ -232,7 +232,7 @@ curl -sk -X POST https://__RANCHER_IP__/v3-public/localProviders/local?action=lo
 | Password | `StormSurge81` |
 | Local cluster | `local` (k3s, active, healthy) |
 | Downstream cluster | `daggerfall` (`c-m-wxln69zp`, unavailable — Daggerfall ARM node offline) |
-| Current token | `token-fjltr:__TOKEN__` (expires ~16h) |
+| Current token | `__RANCHER_TOKEN__` (expires ~16h) |
 
 **Token creation via API:**
 ```bash
