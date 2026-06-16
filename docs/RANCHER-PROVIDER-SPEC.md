@@ -13,7 +13,7 @@ cluster-level k8s proxy. It treats each **cluster** as a resource group, and
 **workloads** (Deployments, StatefulSets, DaemonSets) as individual resources.
 
 Rancher version: v2.8.2 running as a Docker container (`rancher/rancher:latest`)
-on `__IP__` (VM with Docker, 4 NICs across 4 LAN subnets).
+on `__RANCHER_IP__` (VM with Docker, 4 NICs across 4 LAN subnets).
 
 ---
 
@@ -164,7 +164,7 @@ hardware failure (memory card). Provider should report it as `unavailable`.
 providers:
   - id: rancher-main
     type: rancher
-    url: https://__IP__
+    url: https://__RANCHER_IP__
     username: admin          # optional if token_secret_env provided
     token_secret_env: RANCHER_TOKEN   # env var with "token-<id>:<secret>"
     # password: StormSurge81  # alternatively inline password
@@ -198,7 +198,7 @@ groups:
 providers:
   - id: rancher-main
     type: rancher
-    url: https://__IP__
+    url: https://__RANCHER_IP__
     username: admin
     token_secret_env: RANCHER_TOKEN
     verify_tls: false
@@ -216,7 +216,7 @@ export RANCHER_TOKEN="token-fjltr:__TOKEN__"
 
 Or get a fresh one:
 ```bash
-curl -sk -X POST https://__IP__/v3-public/localProviders/local?action=login \
+curl -sk -X POST https://__RANCHER_IP__/v3-public/localProviders/local?action=login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"StormSurge81"}'
 ```
@@ -227,7 +227,7 @@ curl -sk -X POST https://__IP__/v3-public/localProviders/local?action=login \
 
 | Endpoint | Value |
 |---|---|
-| Rancher URL | `https://__IP__` |
+| Rancher URL | `https://__RANCHER_IP__` |
 | Admin user | `admin` |
 | Password | `StormSurge81` |
 | Local cluster | `local` (k3s, active, healthy) |
@@ -236,7 +236,7 @@ curl -sk -X POST https://__IP__/v3-public/localProviders/local?action=login \
 
 **Token creation via API:**
 ```bash
-curl -sk -X POST https://__IP__/v3/tokens \
+curl -sk -X POST https://__RANCHER_IP__/v3/tokens \
   -H "Authorization: Bearer <admin-token>" \
   -H "Content-Type: application/json" \
   -d '{"type":"token","name":"dubdeck"}'

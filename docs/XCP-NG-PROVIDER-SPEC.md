@@ -21,7 +21,7 @@ Dubdeck backend (__HOST__)
     │
     │  xmlrpc.client.ServerProxy("https://<xcp-ng-host>:443/", ssl_context)
     │
-    └───► XCP-ng host (Mars: __IP__)
+    └───► XCP-ng host (__XCPNG_HOST__: __XCPNG_HOST_IP__)
               XenAPI XML-RPC endpoint (port 443)
 ```
 
@@ -93,14 +93,14 @@ Opens in a browser — XCP-ng handles auth via its own session (root password or
 providers:
   - id: __HOST__-xcp
     type: xcpng
-    host: __IP__        # XCP-ng host address (must be reachable on port 443)
+    host: __XCPNG_HOST_IP__        # XCP-ng host address (must be reachable on port 443)
     username: root             # XenAPI username
     token_secret_env: MARS_PASSWORD  # env var holding the password
     verify_tls: false          # always false for homelab self-signed certs
 
 groups:
   __HOST__-vms:
-    label: "Mars VMs"
+    label: "__XCPNG_HOST__ VMs"
     auto: __HOST__-xcp             # auto group — tracks all VMs from the provider
 ```
 
@@ -112,7 +112,7 @@ groups:
 
 XenAPI session login:
 ```python
-session.login_with_password("root", "__PASSWORD__")
+session.login_with_password("root", "__XCPNG_PASSWORD__")
 → {"Status": "Success", "Value": "OpaqueRef:680ba1be-61bd-41db-b6c3-48fe84a79ba9"}
 ```
 
@@ -133,12 +133,12 @@ Session refs expire after 24 hours by default on XCP-ng. The `XenAPISession` cla
 
 | Host | IP | Role | Status |
 |---|---|---|---|
-| Mars | __IP__ | Primary hypervisor, 56GB RAM, 78 VMs | ✅ Running |
-| Zeus | __IP__ | Secondary | ⚠️ Offline |
-| Gamera | __IP__ | XCP-ng | ⚠️ Offline |
-| Saturn | __IP__ | XCP-ng | ⚠️ Offline |
+| __XCPNG_HOST__ | __XCPNG_HOST_IP__ | Primary hypervisor, 56GB RAM, 78 VMs | ✅ Running |
+| __XCPNG_HOST__ | __XCPNG_HOST_IP__ | Secondary | ⚠️ Offline |
+| __XCPNG_HOST__ | __XCPNG_HOST_IP__ | XCP-ng | ⚠️ Offline |
+| __XCPNG_HOST__ | __XCPNG_HOST_IP__ | XCP-ng | ⚠️ Offline |
 
-**Test environment:** __HOST__ (__IP__, Xen PV guest) → Mars (__IP__) via direct XenAPI on port 443.
+**Test environment:** __TREADSTONE__ (__TREADSTONE_IP__, Xen PV guest) → __XCPNG_HOST__ (__XCPNG_HOST_IP__) via direct XenAPI on port 443.
 
 ---
 

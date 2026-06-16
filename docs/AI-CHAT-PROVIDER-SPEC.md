@@ -75,7 +75,7 @@ data: [DONE]
 ai_providers:
   ollama:
     id: local-ollama
-    url: "http://__IP__:11434"
+    url: "http://__OLLAMA_IP__:11434"
     default_model: "qwen3.6-35b-a3b"
     # No API key — LAN-only, no auth needed
 
@@ -319,7 +319,7 @@ frontend/src/apps/
 │  🤖 Starting research-lab VMs... [streaming]        │
 │                                                     │
 ├─────────────────────────────────────────────────────┤
-│ [system prompt] Context: __HOST__, __HOST__, research-lab  │
+│ [system prompt] Context: __XCPNG_HOST__, __XCPNG_HOST__, research-lab  │
 ├─────────────────────────────────────────────────────┤
 │ [Type a message...                          ] [Send]│
 └─────────────────────────────────────────────────────┘

@@ -137,7 +137,7 @@ Each AI agent instance (OpenClaw, Hermes, NanoClaw, ResonantOS) backs up its cri
 
 **New Treadstone module:** `agent-repair`
 
-**Database additions (Halfmoon `treadstone` DB):**
+**Database additions (__GITEA__ `__TREADSTONE__` DB):**
 ```sql
 ALTER TABLE agents ADD COLUMN last_backup datetime;
 ALTER TABLE agents ADD COLUMN backup_path varchar(256);
@@ -222,12 +222,12 @@ backups/
   gemma/
     gemma-2026-06-15-170000.tar.gz
     gemma-manifest.json
-  __HOST__/
-    __HOST__-2026-06-15-163000.tar.gz
-    __HOST__-manifest.json
-  __HOST__/
-    __HOST__-2026-06-15-090000.tar.gz
-    __HOST__-manifest.json
+  __AGENT_NAME__/
+    __AGENT__-YYYY-MM-DD-HHMMSS.tar.gz
+    __AGENT__-manifest.json
+  __AGENT_NAME__/
+    __AGENT__-YYYY-MM-DD-HHMMSS.tar.gz
+    __AGENT__-manifest.json
 ```
 
 **Retention:** Keep last 7 backups per agent (rotated by timestamp).

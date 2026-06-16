@@ -2,7 +2,7 @@
 
 This guide covers installing Dubdeck on a Linux bare-metal or VM host **without Docker**. Dubdeck runs under PM2 with a built frontend served statically.
 
-Tested on: **__HOST__** (Debian Trixie, Xen PV guest, __IP__)
+Tested on: **__TREADSTONE__** (Debian Trixie, Xen PV guest, __TREADSTONE_IP__)
 
 ---
 
@@ -20,7 +20,7 @@ Tested on: **__HOST__** (Debian Trixie, Xen PV guest, __IP__)
 ## 1. Clone the repository
 
 ```bash
-git clone http://__IP__:3000/pacman/dubdeck.git /opt/dubdeck
+git clone http://__GITEA_IP__:3000/pacman/dubdeck.git /opt/dubdeck
 cd /opt/dubdeck
 ```
 
@@ -28,7 +28,7 @@ If you already have the repo:
 
 ```bash
 cd /opt/dubdeck
-git remote add gitea http://__IP__:3000/pacman/dubdeck.git
+git remote add gitea http://__GITEA_IP__:3000/pacman/dubdeck.git
 git pull gitea main
 ```
 
@@ -79,23 +79,23 @@ Edit `/opt/dubdeck/config.yaml`. Minimum working config for XCP-ng:
 
 ```yaml
 providers:
-  - id: __HOST__-xcp
+  - id: __XCPNG_HOST__-xcp
     type: xcpng
-    host: __IP__       # your XCP-ng host
+    host: __XCPNG_HOST_IP__       # your XCP-ng host
     username: root
-    token_secret_env: MARS_PASSWORD
+    token_secret_env: __XCPNG_PASSWORD__
     verify_tls: false
 
 groups:
-  __HOST__-vms:
-    label: "Mars VMs"
-    auto: __HOST__-xcp
+  __XCPNG_HOST__-vms:
+    label: "__XCPNG_HOST__ VMs"
+    auto: __XCPNG_HOST__-xcp
 ```
 
 **Set the password env var before starting:**
 
 ```bash
-export MARS_PASSWORD=__PASSWORD__
+export __XCPNG_PASSWORD__=____XCPNG_PASSWORD____
 ```
 
 Or add it to PM2's environment (see step 5).
@@ -119,7 +119,7 @@ On the Dubdeck host, ensure:
 
 Test from the Dubdeck host:
 ```bash
-export DOCKER_HOST=ssh://test@__IP__
+export DOCKER_HOST=ssh://test@__STT_VM_IP__
 docker ps   # should list containers
 ```
 
@@ -143,7 +143,7 @@ groups:
 
 Add to `start.sh`:
 ```bash
-export DOCKER_HOST=ssh://test@__IP__
+export DOCKER_HOST=ssh://test@__STT_VM_IP__
 export PATH=/home/pacman/.local/bin:$PATH
 ```
 
@@ -165,7 +165,7 @@ module.exports = {
     env: {
       DUBDECK_CONFIG: '/opt/dubdeck/config.yaml',
       DUBDECK_STATIC: '/opt/dubdeck/backend/static',
-      MARS_PASSWORD: '__PASSWORD__',
+      __XCPNG_PASSWORD__: '____XCPNG_PASSWORD____',
     },
     interpreter: 'none',
     autorestart: true,
@@ -214,10 +214,10 @@ curl -s -b cookies.txt -c cookies.txt \
 curl -s -b cookies.txt http://localhost:3001/api/status | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
-p = d['providers'].get('__HOST__-xcp', {})
+p = d['providers'].get('__XCPNG_HOST__-xcp', {})
 print('reachable:', p.get('reachable'))
 print('error:', p.get('error'))
-resources = d.get('groups', {}).get('__HOST__-vms', {}).get('resources', [])
+resources = d.get('groups', {}).get('__XCPNG_HOST__-vms', {}).get('resources', [])
 print('VMs:', len(resources))
 "
 ```
@@ -241,7 +241,7 @@ git pull gitea main
 cd frontend && npm install && npm run build && cp -r dist ../backend/static && cd ..
 
 # Restart Dubdeck (keep env vars with --update-env)
-MARS_PASSWORD=__PASSWORD__ pm2 restart dubdeck --update-env
+__XCPNG_PASSWORD__=____XCPNG_PASSWORD____ pm2 restart dubdeck --update-env
 ```
 
 ---
@@ -269,7 +269,7 @@ The **⎙ Console** button on each VM opens the XCP-ng HTML5 console in a new br
 
 ### XCP-ng provider shows reachable but no VMs
 - The `_build` result dict is correct but the status API intentionally strips resources for the `/api/status` response. Use the Groups UI in the browser — VMs appear there via the `auto:` group.
-- Debug: `curl /api/status` and look for `groups.__HOST__-vms.resources`
+- Debug: `curl /api/status` and look for `groups.__XCPNG_HOST__-vms.resources`
 
 ### Console button returns "no console available"
 - Some VMs (templates, halted VMs without console configured) may not have a console ref. This is expected.

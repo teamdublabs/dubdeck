@@ -301,7 +301,7 @@ providers:
 
 **Notes:**
 - Pattern matches Proxmox (first API provider) — XenAPI is XML-RPC rather than REST, but the architecture is identical: async tasks, session auth, no shell commands
-- **Treadstone already uses XAPI** on Mars/Zeus/Gamera — confirmed working in your environment
+- **Treadstone already uses XAPI** on __XCPNG_HOST__/__XCPNG_HOST__/__XCPNG_HOST__ — confirmed working in your environment
 - Auth: `session.login_with_password(user, pass)` → session ref used in all subsequent calls
 - VMs: protected flag must be checked; snapshot of a protected VM may need unprotection first
 - Pool master: some calls route to pool master only (`host.call_plugin` etc.)

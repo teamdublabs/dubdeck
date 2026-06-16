@@ -10,7 +10,7 @@
 
 The Hyper-V provider manages VMs on a Windows Hyper-V host via **PowerShell remoting over WinRM** (or SSH with OpenSSH). It is similar to the XCP-ng provider but uses PowerShell commands instead of an XML-RPC API.
 
-**Why:** Dubdeck needs a test hypervisor for validating provider connections without touching production infrastructure (Mars). A Windows machine with Hyper-V + one test VM provides a clean isolated target.
+**Why:** Dubdeck needs a test hypervisor for validating provider connections without touching production infrastructure (__XCPNG_HOST__). A Windows machine with Hyper-V + one test VM provides a clean isolated target.
 
 ---
 

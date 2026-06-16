@@ -2,7 +2,7 @@
 **Author:** N1H Tech (Gemma)
 **Date:** 2026-06-15
 **Status:** Draft
-**Target:** Proxmox VE 8.x on Freya (__IP__)
+**Target:** Proxmox VE 8.x on __PROXMOX_HOST__ (__PROXMOX_HOST_IP__)
 
 ---
 
@@ -11,7 +11,7 @@
 The Proxmox provider manages VMs and LXC containers on a Proxmox VE host via the REST API.
 It is analogous to the XCP-ng provider but uses the Proxmox API instead of XenAPI.
 
-**Installation target:** Freya (__IP__) — physical host, clean Debian install, 7.2GB RAM, 110GB disk.
+**Installation target:** __PROXMOX_HOST__ (__PROXMOX_HOST_IP__) — physical host, clean Debian install, 7.2GB RAM, 110GB disk.
 
 ---
 
@@ -30,7 +30,7 @@ The `ticket` is a cookie value (`PVE=...`). All subsequent requests use:
 ### Nodes
 ```
 GET /api2/json/nodes
-→ { "data": [{"node": "__HOST__", "status": "online", ...}] }
+→ { "data": [{"node": "__PROXMOX_HOST__", "status": "online", ...}] }
 ```
 
 ### VMs (QEMU/KVM)
@@ -87,7 +87,7 @@ GET /api2/json/cluster/resources
 
 ```
 ref format: <provider-id>/<node>/<vmid>
-example:  proxmox-__HOST__/__HOST__/100
+example:  proxmox-__PROXMOX_HOST__/__PROXMOX_HOST__/100
 
 kind: ResourceKind.VM (for qemu), ResourceKind.CONTAINER (for lxc)
 ```
@@ -120,22 +120,22 @@ kind: ResourceKind.VM (for qemu), ResourceKind.CONTAINER (for lxc)
 
 ```yaml
 providers:
-  - id: proxmox-__HOST__
+  - id: proxmox-__PROXMOX_HOST__
     type: proxmox
-    host: __IP__
+    host: __PROXMOX_HOST_IP__
     username: root@pam
     token_secret_env: PROXMOX_PASSWORD
     verify_tls: false
 
 groups:
-  __HOST__-vms:
-    label: "Freya VMs"
-    auto: proxmox-__HOST__
+  __PROXMOX_HOST__-vms:
+    label: "__PROXMOX_HOST__ VMs"
+    auto: proxmox-__PROXMOX_HOST__
 ```
 
 **Set password:**
 ```bash
-export PROXMOX_PASSWORD=__PASSWORD__
+export PROXMOX_PASSWORD=__PROXMOX_PASSWORD__
 ```
 
 ---
@@ -144,21 +144,21 @@ export PROXMOX_PASSWORD=__PASSWORD__
 
 | | |
 |---|---|
-| Host | Freya (__IP__) |
+| Host | __PROXMOX_HOST__ (__PROXMOX_HOST_IP__) |
 | OS | Debian (physical host) |
 | RAM | 7.2GB total, ~6.5GB available |
 | Disk | 110GB, 81GB free |
 | Proxmox install | TBD (clean Debian → Proxmox VE 8.x) |
 | Default user | root@pam |
-| Password | `__PASSWORD__` (Freya's root password) |
+| Password | `__FREYA_ROOT_PASSWORD__` (__PROXMOX_HOST__'s root password) |
 
-**Backup note:** Pacman is backing up Freya before installing Proxmox. Freya was previously the Ops Center hub (agent-ops-center, treadstone, picoclaw-ops, treadstone-ops services running).
+**Backup note:** Pacman is backing up __PROXMOX_HOST__ before installing Proxmox. __PROXMOX_HOST__ was previously the Ops Center hub (agent-ops-center, treadstone, picoclaw-ops, treadstone-ops services running).
 
 ---
 
 ## Implementation Plan
 
-1. **Install Proxmox VE 8.x** on Freya (clean install, not in-place upgrade)
+1. **Install Proxmox VE 8.x** on __PROXMOX_HOST__ (clean install, not in-place upgrade)
 2. **API access:** Enable `root@pam` access (default, password auth works)
 3. **TLS:** Proxmox self-signed cert — `verify_tls: false`
 4. **Implement** `backend/app/providers/proxmox.py` — `ProxmoxProvider` class
