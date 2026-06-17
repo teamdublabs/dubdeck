@@ -7,20 +7,33 @@ on:
 jobs:
   # Run secrets scan first; backend/frontend depend on it so a leaked key
   # fails the workflow before burning CI minutes on lint+test. Mirrors the
-  # `gitleaks` step in scripts/check.sh — the local script and the CI gate
-  # use the same rules and the same exit-code-1 fail posture.
+  # `gitleaks` step in scripts/check.sh — same rules, same exit-code-1
+  # fail posture.
+  #
+  # Installs gitleaks directly from the upstream release tarball rather
+  # than via gitleaks/gitleaks-action: the v2 Action was commercialised
+  # and now requires a paid license secret. The CLI itself is still
+  # Apache-2.0 / free, so invoking it directly is simpler and avoids the
+  # licensing surprise. Pin to a specific release for reproducibility;
+  # bump the version string in one place when upgrading.
   secrets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0  # full history — gitleaks scans commits, not just HEAD
 
       - name: gitleaks
-        uses: gitleaks/gitleaks-action@v2
         env:
-          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: "8.18.4"
+        run: |
+          set -euo pipefail
+          arch="$(uname -m | sed 's/aarch64/arm64/;s/x86_64/amd64/')"
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${arch}.tar.gz" \
+            | tar -xz -C /tmp gitleaks
+          sudo mv /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+          gitleaks detect --source . --redact --exit-code 1
 
   backend:
     needs: secrets
