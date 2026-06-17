@@ -24,7 +24,7 @@ orthogonal concepts:
 ```
 Host        — a machine Dubdeck can execute on (transport: ssh | local)
 Provider    — an instance of a provider type bound to a host or URL
-              (parallels, libvirt, docker, compose, proxmox, hyperv)
+              (parallels, libvirt, docker, compose, proxmox, hyperv, virtualbox)
 Resource    — what a provider manages: kind = vm | container | stack
 Capability  — what a provider can do to its resources (start, stop, suspend,
               snapshot, logs, …) — the UI renders only what's declared
@@ -93,10 +93,11 @@ families, and supporting both is what proves the abstraction is genuinely about
 
 ### CommandProvider — over a Transport
 
-`parallels`, `libvirt`, `docker`, `compose`, and `hyperv` are all **CommandProviders**.
-They build a command string, run it through a host-bound `Transport`, and parse the
-output with pure functions. The provider class holds the transport and never knows or
-cares whether that transport is real SSH, a local subprocess, or a test fake.
+`parallels`, `libvirt`, `docker`, `compose`, `hyperv`, and `virtualbox` are all
+**CommandProviders**. They build a command string, run it through a host-bound
+`Transport`, and parse the output with pure functions. The provider class holds the
+transport and never knows or cares whether that transport is real SSH, a local
+subprocess, or a test fake.
 
 ```python
 class Transport(Protocol):
@@ -105,7 +106,7 @@ class Transport(Protocol):
 
 Each family member differs only in the commands it emits and the parsers it runs:
 `libvirt` shells out to `virsh`, `docker` to the Docker CLI, `hyperv` to PowerShell
-cmdlets, and so on. The shared `CommandProvider` base just runs a command and raises
+cmdlets, `virtualbox` to `VBoxManage`, and so on. The shared `CommandProvider` base just runs a command and raises
 on a non-zero exit.
 
 ### ApiProvider — over an HttpClient

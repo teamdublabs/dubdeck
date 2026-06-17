@@ -1,4 +1,4 @@
-"""Provider contract suite — the definition of "a provider works".
+"""Provider contract suite - the definition of "a provider works".
 
 Every provider must pass this with its fakes. Two families register here:
 transport-backed CommandProviders (parallels/libvirt/docker/compose) and
@@ -12,7 +12,7 @@ providers get an equivalent path-injection guarantee of their own.
 2. list_resources returns stable, non-empty ids on real fixture output;
 3. state mapping covers the fixture (no UNKNOWN leaks for known states);
 4. injection: hostile resource names are quoted (command builders) or rejected
-   (compose stack names, proxmox node/vmid) — never injected raw.
+   (compose stack names, proxmox node/vmid) - never injected raw.
 """
 
 import shlex
@@ -27,6 +27,7 @@ from app.providers import docker as dk
 from app.providers import hyperv as hv
 from app.providers import libvirt as lv
 from app.providers import parallels as pl
+from app.providers import virtualbox as vb
 from app.providers.registry import build_command_provider
 from app.transports import CommandResult
 from tests.conftest import FIXTURES
@@ -119,6 +120,13 @@ GENERIC_CASES = [
         ResourceState.RUNNING,
     ),
     GenericCase(
+        "virtualbox",
+        lambda: _command_provider("virtualbox", vb.VBOX_LIST, "vbox_list_vms_long.txt"),
+        "res-1",
+        "gateway-04",
+        ResourceState.RUNNING,
+    ),
+    GenericCase(
         "proxmox",
         lambda: proxmox_provider(),
         "pve/100",  # a real guest its fakes recognise
@@ -176,7 +184,7 @@ async def test_state_mapping_covers_fixture(case: GenericCase):
     resources = await provider.list_resources()
     by_id = {r.id: r for r in resources}
     assert by_id[case.expect_id].state == case.expect_state
-    # the real fixture contains only known states — none should leak as UNKNOWN
+    # the real fixture contains only known states - none should leak as UNKNOWN
     assert all(r.state != ResourceState.UNKNOWN for r in resources)
 
 
@@ -184,7 +192,7 @@ async def test_state_mapping_covers_fixture(case: GenericCase):
 #
 # Each provider declares the quoting function its builders use: POSIX providers
 # use shlex.quote; Hyper-V uses PowerShell single-quote escaping (`ps_quote`),
-# a different grammar — asserting shlex.quote against a PowerShell command would
+# a different grammar - asserting shlex.quote against a PowerShell command would
 # be wrong. Compose has no quoter slot of its own: it REJECTS hostile names (the
 # test tolerates the resulting ValueError) rather than quoting them.
 COMMAND_BUILDERS = [
@@ -219,7 +227,7 @@ COMMAND_BUILDERS = [
     ),
     pytest.param(
         # compose builders take (stacks_dir, name) and REJECT hostile names
-        # rather than quote them — the hostile-name test tolerates ValueError.
+        # rather than quote them - the hostile-name test tolerates ValueError.
         [
             lambda n: cmp.up_command(COMPOSE_STACKS_DIR, n),
             lambda n: cmp.down_command(COMPOSE_STACKS_DIR, n),
@@ -242,6 +250,21 @@ COMMAND_BUILDERS = [
         hv.ps_quote,
         id="hyperv",
     ),
+    pytest.param(
+        # VirtualBox builders run over SSH-to-POSIX-shell (the common path on
+        # Linux/macOS VBox hosts), so names are shlex-quoted — same grammar as
+        # parallels/libvirt/docker/compose.
+        [
+            vb.start_command,
+            vb.stop_command,
+            vb.force_stop_command,
+            vb.suspend_command,
+            vb.snapshot_list_command,
+            lambda n: vb.snapshot_create_command(n, "snap"),
+        ],
+        shlex.quote,
+        id="virtualbox",
+    ),
 ]
 
 
@@ -253,9 +276,9 @@ def test_command_builders_quote_hostile_names(builders, quoter):
                 cmd = builder(name)
             except ValueError:
                 # Rejecting a hostile name outright (compose's strict allowlist)
-                # is at least as safe as quoting it — accept that posture.
+                # is at least as safe as quoting it - accept that posture.
                 continue
-            # otherwise the name must appear only in its provider-quoted form — no
+            # otherwise the name must appear only in its provider-quoted form - no
             # raw injection of the dangerous string into the command line
             assert quoter(name) in cmd, f"{builder} did not quote {name!r}: {cmd}"
 

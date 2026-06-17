@@ -1,0 +1,90 @@
+Name:            debian-test
+Groups:          /
+Guest OS:        Debian (64-bit)
+UUID:            abcdef01-0000-0000-0000-000000000001
+Config file:     /home/labuser/VirtualBox VMs/debian-test/debian-test.vbox
+Snapshot folder: /home/labuser/VirtualBox VMs/debian-test/Snapshots
+Log folder:      /home/labuser/VirtualBox VMs/debian-test/Logs
+Hardware UUID:   abcdef01-0000-0000-0000-000000000001
+Memory size:     2048MB
+Page Fusion:     off
+VRAM size:       16MB
+CPU exec cap:    100%
+HPET:            on
+Chipset:         piix3
+Firmware:        BIOS
+Number of CPUs:  2
+PAE:             on
+Long Mode:       on
+Triple Fault Reset: off
+APIC:            on
+X2APIC:          on
+Nested Paging:   on
+Large Pages:     on
+CPU/Port:        <cset>
+CPU/0:           100%
+CPU/1:           100%
+State:           powered off (since 2026-01-15T09:00:00.000000000Z)
+State changed:   2026-01-15T09:00:00.966251000Z
+Last state change: 2026-01-15T09:00:00.966251000Z
+
+Name:            gateway-04
+Groups:          /
+Guest OS:        Ubuntu (64-bit)
+UUID:            abcdef01-0000-0000-0000-000000000002
+Config file:     /home/labuser/VirtualBox VMs/gateway-04/gateway-04.vbox
+Snapshot folder: /home/labuser/VirtualBox VMs/gateway-04/Snapshots
+Log folder:      /home/labuser/VirtualBox VMs/gateway-04/Logs
+Hardware UUID:   abcdef01-0000-0000-0000-000000000002
+Memory size:     4096MB
+Page Fusion:     off
+VRAM size:       16MB
+CPU exec cap:    100%
+HPET:            on
+Chipset:         piix3
+Firmware:        BIOS
+Number of CPUs:  2
+PAE:             on
+Long Mode:       on
+Triple Fault Reset: off
+APIC:            on
+X2APIC:          on
+Nested Paging:   on
+Large Pages:     on
+CPU/Port:        <cset>
+CPU/0:           100%
+CPU/1:           100%
+State:           running (since 2026-01-15T09:05:30.000000000Z)
+State changed:   2026-01-15T09:05:30.123456000Z
+Last state change: 2026-01-15T09:05:30.123456000Z
+
+Name:            kali-lab
+Groups:          /
+Guest OS:        Debian (64-bit)
+UUID:            abcdef01-0000-0000-0000-000000000003
+Config file:     /home/labuser/VirtualBox VMs/kali-lab/kali-lab.vbox
+Snapshot folder: /home/labuser/VirtualBox VMs/kali-lab/Snapshots
+Log folder:      /home/labuser/VirtualBox VMs/kali-lab/Logs
+Hardware UUID:   abcdef01-0000-0000-0000-000000000003
+Memory size:     8192MB
+Page Fusion:     off
+VRAM size:       128MB
+CPU exec cap:    100%
+HPET:            on
+Chipset:         piix3
+Firmware:        EFI
+Number of CPUs:  4
+State:           saved (since 2026-01-14T22:00:00.000000000Z)
+State changed:   2026-01-14T22:00:00.123456000Z
+Last state change: 2026-01-14T22:00:00.123456000Z
+
+Name:            dev-01
+Groups:          /
+Guest OS:        Linux 2.6 / 3.x / 4.x / 5.x kernel
+UUID:            abcdef01-0000-0000-0000-000000000004
+Config file:     /home/labuser/VirtualBox VMs/dev-01/dev-01.vbox
+Snapshot folder: /home/labuser/VirtualBox VMs/dev-01/Snapshots
+Log folder:      /home/labuser/VirtualBox VMs/dev-01/Logs
+Hardware UUID:   abcdef01-0000-0000-0000-000000000004
+Memory size:     2048MB
+State:           paused (since 2026-01-15T10:30:00.000000000Z)

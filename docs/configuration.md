@@ -81,8 +81,8 @@ providers:
 
 There are two provider families. Which fields are required depends on the family:
 
-**Command providers** (parallels, libvirt, docker, compose, hyperv) reach their
-host via a transport. They require `host`.
+**Command providers** (parallels, libvirt, docker, compose, hyperv, virtualbox)
+reach their host via a transport. They require `host`.
 
 **API providers** (proxmox) talk to an HTTP API. They require `url`, `token_id`,
 and `token_secret_env`. They do not accept `host`.
@@ -92,7 +92,7 @@ and `token_secret_env`. They do not accept `host`.
 | Field | Type | Required | Default | Description |
 |---|---|---|---|---|
 | `id` | string | yes | — | Unique name for this provider instance. Referenced as the `provider-id` part of resource refs (`provider-id/resource-id`). Must be unique across all providers. |
-| `type` | string | yes | — | Provider type. One of: `parallels`, `libvirt`, `docker`, `compose`, `proxmox`, `hyperv`. |
+| `type` | string | yes | — | Provider type. One of: `parallels`, `libvirt`, `docker`, `compose`, `proxmox`, `hyperv`, `virtualbox`. |
 | `host` | string | **yes, command providers** | — | Host name (must match a key in `hosts:`). |
 | `stacks_dir` | string | **yes, compose** | — | Directory holding `<name>/compose.yaml` stacks. Required for compose providers, ignored for all others. |
 | `url` | string | **yes, proxmox** | — | Proxmox API base URL, e.g. `https://192.0.2.20:8006`. |

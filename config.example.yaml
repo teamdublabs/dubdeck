@@ -30,7 +30,7 @@ hosts:
 providers:
   # A provider is one instance of a provider type bound to a host. The id is how
   # resources are referenced (provider-id/resource-id) in groups below.
-  # Types: libvirt | parallels | docker | compose | proxmox | hyperv
+  # Types: libvirt | parallels | docker | compose | proxmox | hyperv | virtualbox
   - id: lab-kvm
     type: libvirt
     host: linux01
@@ -72,6 +72,15 @@ providers:
   # - id: winhost-hyperv
   #   type: hyperv
   #   host: winhost      # define this host above with stats: null
+
+  # VirtualBox VMs on any host running VBoxManage (typical: Linux server, macOS
+  # workstation, or Windows host). A command provider — binds to an SSH host;
+  # the SSH user needs to be able to run `VBoxManage list vms` and see the VMs
+  # you want to manage. See docs/providers/virtualbox.md for the SSH-user
+  # posture and the `--type headless` start detail. (experimental.)
+  # - id: vboxhost-virtualbox
+  #   type: virtualbox
+  #   host: vboxhost     # define this host above with stats: linux
 
 groups:
   # A group is a named collection of resources for display + bulk ops, shown as

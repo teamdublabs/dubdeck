@@ -26,6 +26,7 @@ renders buttons only for declared capabilities.
 | [compose](compose.md) | stack | command | ✓ | ✓ | — | — | — | — | — | stable |
 | [proxmox](proxmox.md) | vm | api | ✓ | ✓ | ✓ | ✓ | ✓ | — | ✓ | beta |
 | [hyperv](hyperv.md) | vm | command | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | experimental |
+| [virtualbox](virtualbox.md) | vm | command | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | experimental |
 
 **snapshot** = both `snapshot_list` and `snapshot_create`; these are always
 declared together.
@@ -50,6 +51,7 @@ declared together.
 | [compose](compose.md) | `compose` | Docker Compose stacks in a `stacks_dir` directory |
 | [proxmox](proxmox.md) | `proxmox` | QEMU VMs and LXC containers on a Proxmox VE cluster |
 | [hyperv](hyperv.md) | `hyperv` | Hyper-V VMs on a Windows host via SSH + PowerShell |
+| [virtualbox](virtualbox.md) | `virtualbox` | VirtualBox VMs on a Linux/macOS/Windows host via SSH + `VBoxManage` |
 
 ---
 

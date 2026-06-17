@@ -1,0 +1,14 @@
+   Name: clean-baseline (UUID: ffeedd01-0000-0000-0000-000000000001)
+      State: powered off (snapshot)
+      UUID: ffeedd01-0000-0000-0000-000000000001
+      Created: 2026-01-10T08:00:00.000000000Z
+
+   Name: post-patches (UUID: ffeedd01-0000-0000-0000-000000000002)
+      State: powered off (snapshot)
+      UUID: ffeedd01-0000-0000-0000-000000000002
+      Created: 2026-01-12T14:30:00.000000000Z
+
+   Name: before-exploit (UUID: ffeedd01-0000-0000-0000-000000000003)
+      State: running (snapshot)
+      UUID: ffeedd01-0000-0000-0000-000000000003
+      Created: 2026-01-15T09:00:00.000000000Z

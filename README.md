@@ -126,8 +126,9 @@ cross-site requests to `/api`.
 | Parallels | `prlctl` | ✅ Current |
 | Docker | `docker` | ✅ Current |
 | Docker Compose stacks | `docker compose` | ✅ Current |
-| Proxmox | Proxmox API | 🛣️ Untested |
-| Hyper-V |  | 🛣️ Untested |
+| Hyper-V | `pwsh` (over OpenSSH) | 🚧 Experimental |
+| Proxmox | Proxmox API | 🚧 Beta |
+| VirtualBox | `VBoxManage` | 🚧 Experimental |
 
 > Each provider is one instance of a provider *type* bound to a host. Adding hardware is a
 > config edit, never a code change.

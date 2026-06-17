@@ -16,6 +16,7 @@ from app.providers.hyperv import HyperVProvider
 from app.providers.libvirt import LibvirtProvider
 from app.providers.parallels import ParallelsProvider
 from app.providers.proxmox import ProxmoxProvider
+from app.providers.virtualbox import VirtualBoxProvider
 from app.transports import Transport
 
 # type_name → provider class, for every provider family. The two families are
@@ -30,6 +31,7 @@ PROVIDER_TYPES: dict[str, type[Provider]] = {
     ComposeProvider.type_name: ComposeProvider,
     HyperVProvider.type_name: HyperVProvider,
     ProxmoxProvider.type_name: ProxmoxProvider,
+    VirtualBoxProvider.type_name: VirtualBoxProvider,
 }
 
 
