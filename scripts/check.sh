@@ -6,6 +6,15 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# gitleaks first: a leaked secret on a public remote can't be revoked by
+# rewriting history alone — it must be rotated. Fail fast before any other
+# check burns CI time on a commit that shouldn't ship.
+#   install: curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_<ver>_linux_$(uname -m | sed 's/aarch64/arm64/;s/x86_64/amd64/').tar.gz | tar -xz -C /tmp && sudo mv /tmp/gitleaks /usr/local/bin/
+echo "== repo: gitleaks =="
+# `--exit-code 1` is required: gitleaks detect defaults to exit 0 even on
+# findings, which would let leaks slip past the gate.
+( cd "$repo_root" && gitleaks detect --source . --redact --exit-code 1 )
+
 echo "== backend: ruff check =="
 ( cd "$repo_root/backend" && uv run ruff check . )
 
