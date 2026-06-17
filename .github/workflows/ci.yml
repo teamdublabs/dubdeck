@@ -5,7 +5,25 @@ on:
   pull_request:
 
 jobs:
+  # Run secrets scan first; backend/frontend depend on it so a leaked key
+  # fails the workflow before burning CI minutes on lint+test. Mirrors the
+  # `gitleaks` step in scripts/check.sh — the local script and the CI gate
+  # use the same rules and the same exit-code-1 fail posture.
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history — gitleaks scans commits, not just HEAD
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   backend:
+    needs: secrets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,6 +52,7 @@ jobs:
         run: uv run pytest
 
   frontend:
+    needs: secrets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
